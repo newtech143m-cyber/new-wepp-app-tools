@@ -170,10 +170,6 @@ const ImageToText = () => {
 
   const extractText = async () => {
     if (!image) return;
-    if (!user) {
-      alert('Fadlan marka hore soo gal (Login) si aad u isticmaasho AI-ga.');
-      return;
-    }
     
     setLoading(true);
     try {
@@ -289,10 +285,6 @@ const JpgToWord = () => {
 
   const convertToWord = async () => {
     if (!image) return;
-    if (!user) {
-      alert('Fadlan marka hore soo gal (Login) si aad u isticmaasho AI-ga.');
-      return;
-    }
 
     setLoading(true);
     try {
@@ -405,10 +397,6 @@ const TitleToImage = () => {
 
   const generateImage = async () => {
     if (!title.trim()) return;
-    if (!user) {
-      alert('Fadlan marka hore soo gal (Login) si aad u isticmaasho AI-ga.');
-      return;
-    }
 
     setLoading(true);
     try {
@@ -631,11 +619,6 @@ const BackgroundGenerator = () => {
   ];
 
   const generateBackground = async () => {
-    if (!user) {
-      alert('Fadlan marka hore soo gal (Login) si aad u isticmaasho AI-ga.');
-      return;
-    }
-
     setLoading(true);
     try {
       const success = await consumeCredit();
@@ -801,10 +784,6 @@ const PdfToExcelNames = () => {
 
   const processPdfs = async () => {
     if (files.length === 0) return;
-    if (!user) {
-      alert('Fadlan marka hore soo gal (Login) si aad u isticmaasho AI-ga.');
-      return;
-    }
 
     setLoading(true);
     try {
@@ -1131,7 +1110,7 @@ const tools = [
 // --- Main Application ---
 
 export default function App() {
-  const { user, loading: authLoading } = useAuth();
+  const { user, userData, isAdmin, loading: authLoading } = useAuth();
   const [activeTool, setActiveTool] = useState<typeof tools[0] | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
@@ -1387,7 +1366,12 @@ export default function App() {
                     <X className="w-4 h-4" /> Usage Limited
                   </li>
                 </ul>
-                <button className="w-full py-3 px-4 bg-slate-100 text-secondary font-bold rounded-xl hover:bg-slate-200 transition-colors">Hadda Isticmaal</button>
+                <button 
+                  onClick={!user ? handleLogin : undefined}
+                  className="w-full py-3 px-4 bg-slate-100 text-secondary font-bold rounded-xl hover:bg-slate-200 transition-colors"
+                >
+                  {!user ? 'Soo gal si aad u isticmaasho' : (userData?.tier === 'free' ? 'Qorshahaagu waa kan' : 'Back to Free')}
+                </button>
               </div>
 
               {/* Pro Plan */}
@@ -1409,7 +1393,12 @@ export default function App() {
                     <CheckCircle2 className="w-4 h-4 text-primary" /> Mark-ga Hub-ka oo laga saaray
                   </li>
                 </ul>
-                <button className="w-full py-3 px-4 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-lg">Ku biir Hadda</button>
+                <button 
+                  onClick={!user ? handleLogin : undefined}
+                  className="w-full py-3 px-4 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-lg"
+                >
+                  {!user ? 'Login & Upgrade' : (userData?.tier === 'pro' ? 'Hadda waad isticmaalaysaa' : 'Hadda Isku Day')}
+                </button>
               </div>
 
               {/* Max Plan */}
@@ -1431,7 +1420,12 @@ export default function App() {
                     <CheckCircle2 className="w-4 h-4 text-secondary" /> Agab Cusub (Beta)
                   </li>
                 </ul>
-                <button className="w-full py-3 px-4 bg-secondary text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">Noqo Max</button>
+                <button 
+                  onClick={!user ? handleLogin : undefined}
+                  className="w-full py-3 px-4 bg-secondary text-white font-bold rounded-xl hover:bg-slate-800 transition-colors"
+                >
+                  {!user ? 'Login & Be Max' : (userData?.tier === 'max' || isAdmin ? 'Hadda waad isticmaalaysaa' : 'Noqo Max')}
+                </button>
               </div>
             </div>
           </div>
@@ -1564,7 +1558,31 @@ export default function App() {
               </div>
               
               <div className="p-4 sm:p-6 overflow-y-auto">
-                <activeTool.component />
+                {user ? (
+                  <activeTool.component />
+                ) : (
+                  <div className="py-12 flex flex-col items-center text-center space-y-6">
+                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
+                      <Lock className="w-10 h-10" />
+                    </div>
+                    <div className="max-w-md">
+                      <h3 className="font-heading text-2xl font-bold text-secondary mb-2">Login Baa Loo Baahan Yahay</h3>
+                      <p className="text-slate-600">
+                        Si aad u isticmaasho agabkan AI-ga ah iyo credits-kaaga bilaashka ah, fadlan marka hore Google account-kaaga ku soo gal.
+                      </p>
+                    </div>
+                    <button 
+                      onClick={handleLogin}
+                      disabled={authLoading}
+                      className="flex items-center gap-2 px-8 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-bold transition-all shadow-lg hover:shadow-primary/30"
+                    >
+                      <LogIn className="w-5 h-5" /> Google Ku Soo Gal (Login)
+                    </button>
+                    <p className="text-xs text-slate-400">
+                      Ma jirto wax lacag ah oo hadda lagaa rabo.
+                    </p>
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>
