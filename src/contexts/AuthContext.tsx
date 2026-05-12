@@ -15,6 +15,7 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   consumeCredit: () => Promise<boolean>;
+  trialCount: number;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -47,6 +48,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [trialCount, setTrialCount] = useState<number>(() => {
+    const saved = localStorage.getItem('trialCount');
+    return saved ? parseInt(saved, 10) : 0;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('trialCount', trialCount.toString());
+  }, [trialCount]);
 
   const ADMIN_EMAIL = 'newtech143m@gmail.com';
   const isAdmin = user?.email === ADMIN_EMAIL;
@@ -89,8 +98,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const consumeCredit = async () => {
-    if (!user) return false;
-    if (isAdmin) return true; // Unlimited for admin
+    // Unlimited for admin
+    if (isAdmin) return true; 
+
+    if (!user) {
+      // Trial logic for logged out users
+      if (trialCount < 2) {
+        setTrialCount(prev => prev + 1);
+        return true;
+      }
+      return false;
+    }
 
     if (userData && userData.credits > 0) {
       try {
@@ -109,7 +127,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, userData, loading, isAdmin, consumeCredit }}>
+    <AuthContext.Provider value={{ user, userData, loading, isAdmin, consumeCredit, trialCount }}>
       {children}
     </AuthContext.Provider>
   );

@@ -44,8 +44,20 @@ import { auth, signInWithPopup, signOut, googleProvider } from './lib/firebase';
 
 // --- UI Components ---
 const CreditWallet = () => {
-  const { userData, isAdmin, user } = useAuth();
-  if (!user) return null;
+  const { userData, isAdmin, user, trialCount } = useAuth();
+  
+  if (!user) {
+    if (trialCount >= 2) return null;
+    return (
+      <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-full">
+        <Coins className="w-3.5 h-3.5 text-slate-400" />
+        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+          Trial: {2 - trialCount} / 2
+        </span>
+      </div>
+    );
+  }
+
   return (
     <div className="flex items-center gap-2 px-3 py-1.5 bg-primary-light/30 border border-primary/20 rounded-full">
       <Coins className="w-3.5 h-3.5 text-primary" />
@@ -1110,7 +1122,7 @@ const tools = [
 // --- Main Application ---
 
 export default function App() {
-  const { user, userData, isAdmin, loading: authLoading } = useAuth();
+  const { user, userData, isAdmin, trialCount, loading: authLoading } = useAuth();
   const [activeTool, setActiveTool] = useState<typeof tools[0] | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
@@ -1157,6 +1169,8 @@ export default function App() {
               <a href="#tools" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Tools</a>
               <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Pricing</a>
               
+              {!user && <CreditWallet />}
+
               {user ? (
                 <div className="flex items-center gap-4">
                   <CreditWallet />
@@ -1208,6 +1222,7 @@ export default function App() {
                 <a href="#home" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Home</a>
                 <a href="#tools" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Tools</a>
                 <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Pricing</a>
+                {!user && <div className="px-3 py-2"><CreditWallet /></div>}
                 {user ? (
                   <div className="px-3 py-2 flex items-center justify-between">
                     <CreditWallet />
@@ -1558,7 +1573,7 @@ export default function App() {
               </div>
               
               <div className="p-4 sm:p-6 overflow-y-auto">
-                {user ? (
+                {(user || trialCount < 2) ? (
                   <activeTool.component />
                 ) : (
                   <div className="py-12 flex flex-col items-center text-center space-y-6">
@@ -1568,7 +1583,7 @@ export default function App() {
                     <div className="max-w-md">
                       <h3 className="font-heading text-2xl font-bold text-secondary mb-2">Login Baa Loo Baahan Yahay</h3>
                       <p className="text-slate-600">
-                        Si aad u isticmaasho agabkan AI-ga ah iyo credits-kaaga bilaashka ah, fadlan marka hore Google account-kaaga ku soo gal.
+                        Hambalyo! Waxaad isticmaashay 2-dii isku day ee bilaashka ahaa. Si aad u sii waddo isticmaalka agabkan iyo credits-kaaga maalinlaha ah, fadlan Google account-kaaga ku soo gal.
                       </p>
                     </div>
                     <button 
