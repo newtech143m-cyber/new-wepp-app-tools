@@ -3,12 +3,18 @@
 @theme {
   --font-sans: "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-heading: "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  
+  --color-primary: #26b98e;
+  --color-primary-dark: #1e9a75;
+  --color-primary-light: #d4f1e8;
+  --color-secondary: #121826;
+  --color-secondary-light: #1f2937;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #f8fafc;
-  color: #0f172a;
+  background-color: #fcfcfc;
+  color: #121826;
 }
 
 h1, h2, h3, h4, h5, h6, .font-heading {

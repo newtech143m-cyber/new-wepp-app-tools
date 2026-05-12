@@ -42,20 +42,20 @@ const TextCaseConverter = () => {
   return (
     <div className="space-y-4">
       <textarea 
-        className="w-full h-40 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none resize-none"
-        placeholder="Type or paste your text here..."
+        className="w-full h-40 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none"
+        placeholder="Ku qor ama soo koobiyeey qoraalkaaga halkan..."
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <button onClick={() => setText(text.toUpperCase())} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition-colors text-slate-800">UPPERCASE</button>
-        <button onClick={() => setText(text.toLowerCase())} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition-colors text-slate-800">lowercase</button>
-        <button onClick={() => setText(text.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase()))))} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition-colors text-slate-800">Title Case</button>
-        <button onClick={() => setText(text.charAt(0).toUpperCase() + text.slice(1).toLowerCase())} className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition-colors text-slate-800">Sentence case</button>
+        <button onClick={() => setText(text.toUpperCase())} className="px-4 py-2 bg-slate-100 hover:bg-primary-light rounded-lg text-sm font-medium transition-colors text-slate-800">WAWAAIN (UPPERCASE)</button>
+        <button onClick={() => setText(text.toLowerCase())} className="px-4 py-2 bg-slate-100 hover:bg-primary-light rounded-lg text-sm font-medium transition-colors text-slate-800">yaryar (lowercase)</button>
+        <button onClick={() => setText(text.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase()))))} className="px-4 py-2 bg-slate-100 hover:bg-primary-light rounded-lg text-sm font-medium transition-colors text-slate-800">Eray Kasta Weynee</button>
+        <button onClick={() => setText(text.charAt(0).toUpperCase() + text.slice(1).toLowerCase())} className="px-4 py-2 bg-slate-100 hover:bg-primary-light rounded-lg text-sm font-medium transition-colors text-slate-800">Bilaawga Weynee</button>
       </div>
       <div className="flex justify-end">
-        <button onClick={() => navigator.clipboard.writeText(text)} className="flex items-center gap-2 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-sm font-medium transition-colors">
-          <Copy className="w-4 h-4" /> Copy Text
+        <button onClick={() => navigator.clipboard.writeText(text)} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg text-sm font-medium transition-colors shadow-md">
+          <Copy className="w-4 h-4" /> Koobiyeey
         </button>
       </div>
     </div>
@@ -72,26 +72,26 @@ const WordCounter = () => {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-        <div className="bg-rose-50 p-4 rounded-xl text-center">
-          <div className="text-2xl font-bold text-rose-600">{words}</div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Words</div>
+        <div className="bg-primary-light p-4 rounded-xl text-center">
+          <div className="text-2xl font-bold text-primary-dark">{words}</div>
+          <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Erayo</div>
         </div>
-        <div className="bg-rose-50 p-4 rounded-xl text-center">
-          <div className="text-2xl font-bold text-rose-600">{chars}</div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Characters</div>
+        <div className="bg-primary-light p-4 rounded-xl text-center">
+          <div className="text-2xl font-bold text-primary-dark">{chars}</div>
+          <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Xarfo</div>
         </div>
-        <div className="bg-rose-50 p-4 rounded-xl text-center">
-          <div className="text-2xl font-bold text-rose-600">{charsNoSpaces}</div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Without Spaces</div>
+        <div className="bg-primary-light p-4 rounded-xl text-center">
+          <div className="text-2xl font-bold text-primary-dark">{charsNoSpaces}</div>
+          <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Xarfo bilaa Boos ah</div>
         </div>
-        <div className="bg-rose-50 p-4 rounded-xl text-center">
-          <div className="text-2xl font-bold text-rose-600">{paragraphs}</div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Paragraphs</div>
+        <div className="bg-primary-light p-4 rounded-xl text-center">
+          <div className="text-2xl font-bold text-primary-dark">{paragraphs}</div>
+          <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Baaragaraafyo</div>
         </div>
       </div>
       <textarea 
-        className="w-full h-40 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none"
-        placeholder="Type or paste your text here..."
+        className="w-full h-40 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none"
+        placeholder="Ku qor ama soo koobiyeey qoraalkaaga halkan..."
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
@@ -109,17 +109,17 @@ const RemoveExtraSpaces = () => {
   return (
     <div className="space-y-4">
       <textarea 
-        className="w-full h-40 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none"
-        placeholder="Type or paste your text here..."
+        className="w-full h-40 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none"
+        placeholder="Ku qor ama soo koobiyeey qoraalkaaga halkan..."
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
       <div className="flex justify-between items-center">
-        <button onClick={handleRemove} className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white rounded-lg text-sm font-medium transition-colors">
-          <Scissors className="w-4 h-4" /> Remove Extra Spaces
+        <button onClick={handleRemove} className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary-light text-white rounded-lg text-sm font-medium transition-colors">
+          <Scissors className="w-4 h-4" /> Ka saar Boosaska Dheeraadka ah
         </button>
-        <button onClick={() => navigator.clipboard.writeText(text)} className="flex items-center gap-2 px-4 py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-lg text-sm font-medium transition-colors">
-          <Copy className="w-4 h-4" /> Copy Text
+        <button onClick={() => navigator.clipboard.writeText(text)} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg text-sm font-medium transition-colors">
+          <Copy className="w-4 h-4" /> Koobiyeey
         </button>
       </div>
     </div>
@@ -152,7 +152,7 @@ const ImageToText = () => {
       const mimeType = image.split(';')[0].split(':')[1];
       
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-2.0-flash',
         contents: {
           parts: [
             { inlineData: { data: base64Data, mimeType } },
@@ -160,10 +160,10 @@ const ImageToText = () => {
           ]
         }
       });
-      setText(response.text || 'No text found.');
+      setText(response.text || 'Qoraal lama helin.');
     } catch (error) {
       console.error(error);
-      setText('Error extracting text. Please try again.');
+      setText('Cillad ayaa dhacday markii la soo saarayay qoraalka. Fadlan mar kale isku day.');
     } finally {
       setLoading(false);
     }
@@ -177,8 +177,8 @@ const ImageToText = () => {
           onClick={() => fileInputRef.current?.click()}
         >
           <Upload className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-          <p className="text-slate-600 font-medium">Click to upload an image</p>
-          <p className="text-slate-400 text-sm mt-1">Supports JPG, PNG, WEBP</p>
+          <p className="text-slate-600 font-medium">Guji si aad u soo geliso sawir</p>
+          <p className="text-slate-400 text-sm mt-1">Waxaa la aqbalaa JPG, PNG, WEBP</p>
           <input 
             type="file" 
             className="hidden" 
@@ -202,12 +202,12 @@ const ImageToText = () => {
             <button 
               onClick={extractText} 
               disabled={loading}
-              className="px-6 py-2 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+              className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md hover:shadow-lg translate-y-0 active:translate-y-1"
             >
               {loading ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Extracting...</>
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Soo saarayaa...</>
               ) : (
-                <><FileText className="w-4 h-4" /> Extract Text</>
+                <><FileText className="w-4 h-4" /> Soo saar Qoraalka</>
               )}
             </button>
           </div>
@@ -217,13 +217,13 @@ const ImageToText = () => {
       {text && (
         <div className="mt-4">
           <div className="flex justify-between items-center mb-2">
-            <h4 className="font-heading font-semibold text-slate-800">Extracted Text</h4>
-            <button onClick={() => navigator.clipboard.writeText(text)} className="text-rose-600 hover:text-rose-700 text-sm font-medium flex items-center gap-1">
-              <Copy className="w-4 h-4" /> Copy
+            <h4 className="font-heading font-semibold text-slate-800">Qoraalka la soo saaray</h4>
+            <button onClick={() => navigator.clipboard.writeText(text)} className="text-primary-dark hover:text-primary text-sm font-medium flex items-center gap-1">
+              <Copy className="w-4 h-4" /> Koobiyeey
             </button>
           </div>
           <textarea 
-            className="w-full h-32 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none resize-none bg-slate-50"
+            className="w-full h-32 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none bg-slate-50"
             value={text}
             readOnly
           />
@@ -296,8 +296,8 @@ const JpgToWord = () => {
           onClick={() => fileInputRef.current?.click()}
         >
           <FileImage className="w-10 h-10 text-slate-400 mx-auto mb-3" />
-          <p className="text-slate-600 font-medium">Click to upload JPG</p>
-          <p className="text-slate-400 text-sm mt-1">Convert image text to Word document</p>
+          <p className="text-slate-600 font-medium">Guji si aad u soo geliso JPG</p>
+          <p className="text-slate-400 text-sm mt-1">U beddel sawirka qoraal ahaan dukumiinti Word ah</p>
           <input 
             type="file" 
             className="hidden" 
@@ -321,12 +321,12 @@ const JpgToWord = () => {
             <button 
               onClick={convertToWord} 
               disabled={loading}
-              className="px-6 py-2 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+              className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md"
             >
               {loading ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Converting...</>
+                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Beddelayaa...</>
               ) : (
-                <><Download className="w-4 h-4" /> Download as Word</>
+                <><Download className="w-4 h-4" /> Hadda Degso (Word)</>
               )}
             </button>
           </div>
@@ -441,21 +441,21 @@ const TitleToImage = () => {
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">Category Tag (Top Left Overlay)</label>
+          <label className="block text-sm font-medium text-slate-700">Category Tag (Overlay-ga bidixda sare)</label>
           <input 
             type="text"
-            className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
-            placeholder="e.g., AFFILIATE MARKETING"
+            className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+            placeholder="tusaale, AFFILIATE MARKETING"
             value={tagText}
             onChange={(e) => setTagText(e.target.value)}
           />
         </div>
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">Button Text (Top Right Overlay)</label>
+          <label className="block text-sm font-medium text-slate-700">Button Text (Overlay-ga midigta sare)</label>
           <input 
             type="text"
-            className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
-            placeholder="e.g., Affiliate"
+            className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+            placeholder="tusaale, Affiliate"
             value={buttonText}
             onChange={(e) => setButtonText(e.target.value)}
           />
@@ -463,11 +463,11 @@ const TitleToImage = () => {
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-slate-700">Main Title / Topic</label>
+        <label className="block text-sm font-medium text-slate-700">Cinwaanka Guud / Mawduuca</label>
         <input 
           type="text"
-          className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none"
-          placeholder='e.g., "How I Make Money Online"'
+          className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none"
+          placeholder='tusaale, "Noloshu waa halgan"'
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && generateImage()}
@@ -475,9 +475,9 @@ const TitleToImage = () => {
       </div>
 
       <div className="space-y-2">
-        <label className="block text-sm font-medium text-slate-700">Background Style</label>
+        <label className="block text-sm font-medium text-slate-700">Nuuca Background-ka</label>
         <select 
-          className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none bg-white"
+          className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white"
           value={bgStyle}
           onChange={(e) => setBgStyle(e.target.value)}
         >
@@ -491,12 +491,12 @@ const TitleToImage = () => {
         <button 
           onClick={generateImage} 
           disabled={loading || !title.trim()}
-          className="px-6 py-2 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+          className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md"
         >
           {loading ? (
-            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Generating...</>
+            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Diyaarinta...</>
           ) : (
-            <><Wand2 className="w-4 h-4" /> Generate Cover Image</>
+            <><Wand2 className="w-4 h-4" /> Diyaari Sawirka</>
           )}
         </button>
       </div>
@@ -504,36 +504,28 @@ const TitleToImage = () => {
       {imageUrl && (
         <div className="mt-8 space-y-4">
           <h4 className="font-heading font-semibold text-slate-800 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-rose-500 rounded-full" />
-            Generated Blog Cover (570x445)
+            <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+            Sawirka Cover-ka (570x445)
           </h4>
           
           <div className="p-4 bg-slate-50 rounded-[2.5rem] border border-slate-200 shadow-inner">
             <div className="relative aspect-[570/445] rounded-[2rem] overflow-hidden border border-white shadow-2xl group max-w-[570px] mx-auto">
-              {/* Main Image */}
               <img src={imageUrl} alt={title} className="w-full h-full object-cover" />
-              
-              {/* Subtle Gradient Overlay */}
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-40" />
               
-              {/* Top Left Tag Overlay */}
               {tagText && (
-                <div className="absolute top-6 left-6 bg-rose-500 text-white text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
+                <div className="absolute top-6 left-6 bg-primary text-white text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
                   {tagText}
                 </div>
               )}
-
-              {/* Top Right Button Overlay */}
               {buttonText && (
-                <div className="absolute top-6 right-6 bg-slate-900/90 backdrop-blur-md text-rose-400 text-[10px] font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10 shadow-lg">
+                <div className="absolute top-6 right-6 bg-secondary/90 backdrop-blur-md text-primary text-[10px] font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10 shadow-lg">
                   <ExternalLink className="w-3.5 h-3.5" /> {buttonText}
                 </div>
               )}
-              
-              {/* Bottom Content Overlay (Preview of title) */}
               <div className="absolute bottom-6 left-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
                 <h3 className="text-white font-bold text-xl leading-tight drop-shadow-md">
-                  {title.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())))}
+                  {title}
                 </h3>
               </div>
             </div>
@@ -544,7 +536,7 @@ const TitleToImage = () => {
               onClick={downloadResizedImage}
               className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors"
             >
-              <Download className="w-4 h-4" /> Download Resized Image (570x445)
+              <Download className="w-4 h-4" /> Degso Sawirka (570x445)
             </button>
           </div>
         </div>
@@ -640,7 +632,7 @@ const BackgroundGenerator = () => {
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">Color Theme</label>
+          <label className="block text-sm font-medium text-slate-700">Midabka (Color Theme)</label>
           <div className="grid grid-cols-3 gap-2">
             {colorOptions.map((opt) => (
               <button
@@ -648,8 +640,8 @@ const BackgroundGenerator = () => {
                 onClick={() => setColorTheme(opt.name)}
                 className={`p-2 text-[10px] font-bold rounded-lg border transition-all ${
                   colorTheme === opt.name 
-                    ? 'bg-rose-500 text-white border-rose-500 shadow-md' 
-                    : 'bg-white text-slate-600 border-slate-200 hover:border-rose-300'
+                    ? 'bg-primary text-white border-primary shadow-md' 
+                    : 'bg-white text-slate-600 border-slate-200 hover:border-primary'
                 }`}
               >
                 {opt.name}
@@ -658,9 +650,9 @@ const BackgroundGenerator = () => {
           </div>
         </div>
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-slate-700">Background Style</label>
+          <label className="block text-sm font-medium text-slate-700">Nuuca Background-ka</label>
           <select 
-            className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-rose-500 focus:border-rose-500 outline-none bg-white"
+            className="w-full p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none bg-white"
             value={bgStyle}
             onChange={(e) => setBgStyle(e.target.value)}
           >
@@ -675,12 +667,12 @@ const BackgroundGenerator = () => {
         <button 
           onClick={generateBackground} 
           disabled={loading}
-          className="px-6 py-2 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
+          className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md translate-y-0 active:translate-y-1"
         >
           {loading ? (
-            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Generating...</>
+            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Diyaarinta...</>
           ) : (
-            <><Wand2 className="w-4 h-4" /> Generate Background</>
+            <><Wand2 className="w-4 h-4" /> Diyaari Background-ka</>
           )}
         </button>
       </div>
@@ -688,8 +680,8 @@ const BackgroundGenerator = () => {
       {imageUrl && (
         <div className="mt-8 space-y-4">
           <h4 className="font-heading font-semibold text-slate-800 flex items-center gap-2">
-            <div className="w-1.5 h-1.5 bg-rose-500 rounded-full" />
-            Generated Background (570x445)
+            <div className="w-1.5 h-1.5 bg-primary rounded-full" />
+            Background-ka la diyaariyay (570x445)
           </h4>
           
           <div className="p-4 bg-slate-50 rounded-[2.5rem] border border-slate-200 shadow-inner">
@@ -703,7 +695,7 @@ const BackgroundGenerator = () => {
               onClick={downloadResizedImage}
               className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-sm font-medium transition-colors"
             >
-              <Download className="w-4 h-4" /> Download Background (570x445)
+              <Download className="w-4 h-4" /> Degso Background-ka (570x445)
             </button>
           </div>
         </div>
@@ -827,7 +819,7 @@ const PdfToExcelNames = () => {
       <div 
         onClick={() => fileInputRef.current?.click()}
         className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all ${
-          files.length > 0 ? 'border-rose-500 bg-rose-50' : 'border-slate-300 hover:border-rose-400 hover:bg-slate-50'
+          files.length > 0 ? 'border-primary bg-primary-light/30' : 'border-slate-300 hover:border-primary hover:bg-slate-50'
         }`}
       >
         <input 
@@ -839,22 +831,22 @@ const PdfToExcelNames = () => {
           onChange={handleFileChange}
         />
         <div className="flex flex-col items-center">
-          <Upload className={`w-12 h-12 mb-4 ${files.length > 0 ? 'text-rose-500' : 'text-slate-400'}`} />
+          <Upload className={`w-12 h-12 mb-4 ${files.length > 0 ? 'text-primary' : 'text-slate-400'}`} />
           <h3 className="font-heading font-semibold text-slate-800">
-            {files.length > 0 ? `${files.length} PDF files selected` : "Click to upload PDF files"}
+            {files.length > 0 ? `${files.length} fayl oo PDF ah ayaa la doortay` : "Guji si aad u soo geliso PDF-yada"}
           </h3>
-          <p className="text-sm text-slate-500 mt-2">Maximum file size: 10MB per file</p>
+          <p className="text-sm text-slate-500 mt-2">Cabbirka ugu badan: 10MB halkii fayl</p>
         </div>
       </div>
 
       {files.length > 0 && (
         <div className="space-y-2">
-          <h4 className="text-sm font-medium text-slate-700">Selected Files:</h4>
+          <h4 className="text-sm font-medium text-slate-700">Faylasha la doortay:</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             {files.map((fEntry) => (
-              <div key={fEntry.id} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-sm">
+              <div key={fEntry.id} className="flex items-center justify-between p-3 bg-white border border-slate-200 rounded-xl shadow-sm hover:border-primary transition-colors">
                 <div className="flex items-center gap-2 overflow-hidden">
-                  <FileText className="w-4 h-4 text-rose-500 shrink-0" />
+                  <FileText className="w-4 h-4 text-primary shrink-0" />
                   <span className="text-sm text-slate-700 truncate">{fEntry.file.name}</span>
                   {extractedData[fEntry.id] && (
                     <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
@@ -863,7 +855,7 @@ const PdfToExcelNames = () => {
                 {!loading && (
                   <button 
                     onClick={(e) => { e.stopPropagation(); removeFile(fEntry.id); }}
-                    className="p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-rose-500 transition-colors"
+                    className="p-1 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-primary transition-colors"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -878,34 +870,23 @@ const PdfToExcelNames = () => {
         <button 
           onClick={processPdfs}
           disabled={files.length === 0 || loading}
-          className="px-8 py-3 bg-rose-500 hover:bg-rose-600 disabled:bg-rose-300 text-white rounded-xl font-medium transition-colors flex items-center gap-2 shadow-sm"
+          className="px-8 py-3 bg-primary hover:bg-primary-dark disabled:bg-slate-300 text-white rounded-xl font-medium transition-colors flex items-center gap-2 shadow-md"
         >
           {loading ? (
-            <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</>
+            <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Shaqaynaya...</>
           ) : (
-            <><Wand2 className="w-5 h-5" /> Extract HHNAMES</>
+            <><Wand2 className="w-5 h-5" /> Soo saar Magacyada</>
           )}
         </button>
         
         {Object.keys(extractedData).length > 0 && (
           <button 
             onClick={downloadExcel}
-            className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors shadow-sm"
+            className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors shadow-md"
           >
-            <Download className="w-5 h-5" /> Export All to Excel
+            <Download className="w-5 h-5" /> Degso Faylka Excel-ka ah
           </button>
         )}
-
-        <button 
-          onClick={() => {
-            // Calling this tool to show the paid model flow UI
-            // However, since we are in the code, I can't call a tool from React.
-            // But the instructions say: "For paid Gemini models that require user-provided API keys, use the platform-provided key selection dialog"
-            // Actually, I should just explain to the user how to do it or if I can trigger it.
-            // Wait, I am the AI, I call the tools.
-          }}
-          className="hidden"
-        />
       </div>
 
       {totalNames > 0 && (
@@ -916,7 +897,7 @@ const PdfToExcelNames = () => {
         >
           <div className="flex justify-between items-center border-t border-slate-200 pt-6">
             <h4 className="font-heading font-semibold text-slate-800">
-              Total Extracted Results ({totalNames} names found across {Object.keys(extractedData).length} files)
+              Natiijada Guud ({totalNames} magacyo ayaa laga helay {Object.keys(extractedData).length} fayl)
             </h4>
           </div>
           <div className="space-y-6">
@@ -925,11 +906,11 @@ const PdfToExcelNames = () => {
               return (
                 <div key={fileId} className="space-y-2">
                   <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-500 rounded-full" />
-                    <span className="text-sm font-semibold text-slate-700">{fileEntry?.file.name || "Unknown File"}</span>
-                    <span className="text-xs text-slate-400">({names.length} names)</span>
+                    <div className="w-2 h-2 bg-primary rounded-full" />
+                    <span className="text-sm font-semibold text-slate-700">{fileEntry?.file.name || "Fayl aan la aqoon"}</span>
+                    <span className="text-xs text-slate-400">({names.length} magac)</span>
                   </div>
-                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 max-h-40 overflow-y-auto">
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-200 max-h-40 overflow-y-auto shadow-inner">
                     <ul className="space-y-1">
                       {names.slice(0, 50).map((name, i) => (
                         <li key={`${fileId}-name-${i}`} className="text-sm text-slate-700 flex items-center gap-2">
@@ -938,7 +919,7 @@ const PdfToExcelNames = () => {
                         </li>
                       ))}
                       {names.length > 50 && (
-                        <li className="text-sm text-slate-500 italic px-6">And {names.length - 50} more...</li>
+                        <li className="text-sm text-slate-500 italic px-6">Iyo {names.length - 50} kale...</li>
                       )}
                     </ul>
                   </div>
@@ -958,12 +939,12 @@ const PdfToJpg = () => {
       <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
         <FileBox className="w-8 h-8 text-slate-400" />
       </div>
-      <h3 className="font-heading font-semibold text-lg text-slate-800">PDF to JPG Converter</h3>
+      <h3 className="font-heading font-semibold text-lg text-slate-800">U beddel PDF-ka sawir ahaan (JPG)</h3>
       <p className="text-slate-500 max-w-sm mx-auto">
-        This feature requires a dedicated backend for PDF processing and is currently in development. Check back soon!
+        Qaabkan waxa uu u baahan yahay nidaam dhinaca backend-ka ah, dhawaan ayaana la soo kordhin doonaa inshaa Allah.
       </p>
       <button disabled className="mt-4 px-6 py-2 bg-slate-200 text-slate-500 rounded-lg font-medium cursor-not-allowed">
-        Coming Soon
+        Dhawaan Filo
       </button>
     </div>
   );
@@ -972,94 +953,94 @@ const PdfToJpg = () => {
 const tools = [
   { 
     id: 'text-case', 
-    name: 'Text Case Converter', 
+    name: 'Beddelaha Qoraalka', 
     icon: Type, 
-    description: 'Convert text to uppercase, lowercase, title case, etc.', 
+    description: 'U beddel qoraalkaaga far waawein, far yaryar, ama bilawga oo keliya.', 
     component: TextCaseConverter,
     category: 'TEXT TOOLS',
-    buttonText: 'Convert',
+    buttonText: 'Beddel',
     bgImage: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=800'
   },
   { 
     id: 'word-counter', 
-    name: 'Word Counter', 
+    name: 'Tirinta Erayada', 
     icon: Hash, 
-    description: 'Count words, characters, and paragraphs in your text.', 
+    description: 'Tiri erayada, xarfaha, iyo cutubyada qoraalkaaga.', 
     component: WordCounter,
     category: 'ANALYSIS',
-    buttonText: 'Count',
+    buttonText: 'Tiri',
     bgImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800'
   },
   { 
     id: 'remove-spaces', 
-    name: 'Remove Extra Spaces', 
+    name: 'Sifeeyaha Boosaska', 
     icon: AlignLeft, 
-    description: 'Clean up your text by removing multiple spaces.', 
+    description: 'Nadiifi qoraalkaaga adigoo ka saaraya boosaska dheeraadka ah.', 
     component: RemoveExtraSpaces,
     category: 'TEXT TOOLS',
-    buttonText: 'Clean',
+    buttonText: 'Sifeey',
     bgImage: 'https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&q=80&w=800'
   },
   { 
     id: 'image-to-text', 
-    name: 'Image to Text Converter', 
+    name: 'Sawir u beddel Qoraal', 
     icon: ImageIcon, 
-    description: 'Extract text from images using AI.', 
+    description: 'Ka soo saar qoraalka sawirada adigoo isticmaalaya AI.', 
     component: ImageToText,
     category: 'AI VISION',
-    buttonText: 'Extract',
+    buttonText: 'Soo saar',
     bgImage: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=800'
   },
   { 
     id: 'jpg-to-word', 
-    name: 'JPG to Word', 
+    name: 'JPG u beddel Word', 
     icon: FileImage, 
-    description: 'Convert image text directly into a Word document.', 
+    description: 'U beddel sawirka qoraalka leh si toos ah dukumiinti Word ah.', 
     component: JpgToWord,
     category: 'CONVERSION',
-    buttonText: 'Convert',
+    buttonText: 'Beddel',
     bgImage: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&q=80&w=800'
   },
   { 
     id: 'title-to-image', 
-    name: 'Blog Cover Generator', 
+    name: 'Sameeyaha Cover-ka', 
     icon: Coins, 
-    description: 'Generate a blog cover image from a title.', 
+    description: 'U sameey cover qurux badan blog-kaaga adigoo cinwaan siinaya.', 
     component: TitleToImage,
     category: 'DESIGN',
-    buttonText: 'Generate',
+    buttonText: 'Sameey',
     bgImage: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&q=80&w=800'
   },
   { 
     id: 'background-generator', 
     name: 'Background Generator', 
     icon: Palette, 
-    description: 'Generate professional minimalist backgrounds for your blog.', 
+    description: 'U sameey background-yo heer sare ah blog-kaaga ama mareegtaada.', 
     component: BackgroundGenerator,
     category: 'DESIGN',
-    buttonText: 'Generate',
+    buttonText: 'Sameey',
     bgImage: 'https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80&w=800'
   },
   { 
     id: 'pdf-to-names', 
     name: 'PDF Name Extractor', 
     icon: FileSpreadsheet, 
-    description: 'Extract HHNAMES column from PDF to Excel using AI.', 
+    description: 'Ka soo saar magacyada (HHNAMES) PDF-yada adigoo u beddelaya Excel.', 
     component: PdfToExcelNames,
     category: 'AI DATA',
-    buttonText: 'Extract',
+    buttonText: 'Soo saar',
     bgImage: 'https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&q=80&w=800'
   },
   { 
     id: 'pdf-to-jpg', 
-    name: 'PDF to JPG', 
+    name: 'PDF u beddel JPG', 
     icon: Banknote, 
-    description: 'Convert PDF pages into high-quality JPG images.', 
+    description: 'U beddel bogagga PDF-ka sawiro JPG ah oo tayo sare leh.', 
     component: PdfToJpg,
     category: 'DOCUMENT',
-    buttonText: 'Convert',
+    buttonText: 'Beddel',
     bgImage: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=800'
-  },
+  }
 ];
 
 // --- Main Application ---
@@ -1070,10 +1051,10 @@ export default function App() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   const faqs = [
-    { q: "Are these tools free to use?", a: "Yes, all tools on AI Tools Hub are completely free to use with no hidden charges." },
-    { q: "Is my data secure?", a: "Absolutely. We process everything in your browser or securely via API, and we never store your files or text." },
-    { q: "Do I need to create an account?", a: "No account is required. You can start using all our tools instantly." },
-    { q: "How accurate is the Image to Text converter?", a: "We use advanced AI models to ensure high accuracy, even with handwritten or complex text." }
+    { q: "Miyaan isticmaali karaa qalabkan si lacag la'aan ah?", a: "Haa, dhammaan agabka ku jira Eagle Hub waa bilaash, mana jiraan khidmado qarsoon." },
+    { q: "Xogtaydu miyay ammaan tahay?", a: "Xaqiiqdii. Wax walba waxaan ku dhex shaqaynaa browser-kaaga ama si ammaan ah ayaan API ugu dirnaa, marnaba ma kaydinno faylashaada ama qoraalkaaga." },
+    { q: "Ma u baahanahay inaan account furtay?", a: "Maya, looma baahna inaad account furato. Waxaad isla markiiba bilaabi kartaa isticmaalka agabkayaga." },
+    { q: "Intee ayay le'eg tahay saxsanaanta beddelaha Sawirka u beddelaya Qoraalka?", a: "Waxaan isticmaalnaa moodallo AI oo horumarsan si loo hubiyo saxsanaan sare, xitaa qoraallada gacanta lagu qoray ama kuwa adag." }
   ];
 
   return (
@@ -1083,19 +1064,19 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-rose-500 rounded-lg flex items-center justify-center">
+              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Coins className="w-5 h-5 text-white" />
               </div>
-              <span className="font-heading font-bold text-xl tracking-tight text-slate-900">Affiliate Hub</span>
+              <span className="font-heading font-bold text-xl tracking-tight text-secondary">Eagle Hub</span>
             </div>
             
             {/* Desktop Menu */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#home" className="text-sm font-medium text-slate-600 hover:text-rose-500 transition-colors">Home</a>
-              <a href="#tools" className="text-sm font-medium text-slate-600 hover:text-rose-500 transition-colors">Tools</a>
-              <a href="#features" className="text-sm font-medium text-slate-600 hover:text-rose-500 transition-colors">Features</a>
-              <a href="#faq" className="text-sm font-medium text-slate-600 hover:text-rose-500 transition-colors">FAQ</a>
-              <button className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-sm font-medium transition-colors">
+              <a href="#home" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Home</a>
+              <a href="#tools" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Tools</a>
+              <a href="#features" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Features</a>
+              <a href="#faq" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">FAQ</a>
+              <button className="px-4 py-2 bg-secondary hover:bg-slate-800 text-white rounded-lg text-sm font-medium transition-colors">
                 Get Started
               </button>
             </div>
@@ -1119,10 +1100,10 @@ export default function App() {
               className="md:hidden bg-white border-b border-slate-200 overflow-hidden"
             >
               <div className="px-4 pt-2 pb-4 space-y-1">
-                <a href="#home" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-rose-500 hover:bg-slate-50">Home</a>
-                <a href="#tools" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-rose-500 hover:bg-slate-50">Tools</a>
-                <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-rose-500 hover:bg-slate-50">Features</a>
-                <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-rose-500 hover:bg-slate-50">FAQ</a>
+                <a href="#home" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Home</a>
+                <a href="#tools" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Tools</a>
+                <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Features</a>
+                <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">FAQ</a>
               </div>
             </motion.div>
           )}
@@ -1132,25 +1113,25 @@ export default function App() {
       <main className="flex-grow">
         {/* Hero Section */}
         <section id="home" className="relative pt-20 pb-24 lg:pt-32 lg:pb-40 overflow-hidden">
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-rose-100 via-white to-white"></div>
+          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-light via-white to-white opacity-50"></div>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-slate-900 tracking-tight mb-6">
-                Master Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-rose-500 to-orange-500">Affiliate Journey</span>
+              <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-secondary tracking-tight mb-6">
+                Habka ugu fudud ee <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Shaqadaada AI</span>
               </h1>
               <p className="max-w-2xl mx-auto text-lg sm:text-xl text-slate-600 mb-10">
-                The ultimate toolkit for affiliate marketers. Extract text, generate covers, and optimize your content with AI-powered efficiency.
+                Eagle Hub waa meesha aad ka helayso agabka ugu fiican ee affiliate marketing-ka. Soo saar qoraal, diyaari cover, oo ku fududee shaqadaada AI.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="#tools" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-medium text-white bg-rose-500 hover:bg-rose-600 rounded-xl transition-all shadow-sm hover:shadow-md">
-                  Get Started <ArrowRight className="w-4 h-4" />
+                <a href="#tools" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-medium text-white bg-primary hover:bg-primary-dark rounded-xl transition-all shadow-md hover:shadow-lg">
+                  Bilaaw hadda <ArrowRight className="w-4 h-4" />
                 </a>
-                <a href="#features" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-medium text-slate-700 bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all shadow-sm hover:shadow-md">
-                  Learn More
+                <a href="#features" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-medium text-secondary bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all shadow-sm hover:shadow-md">
+                  Wax badan ka baro
                 </a>
               </div>
             </motion.div>
@@ -1161,8 +1142,8 @@ export default function App() {
         <section id="tools" className="py-20 bg-slate-50 border-y border-slate-200">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="font-heading text-3xl font-bold text-slate-900 mb-4">Powerful Tools at Your Fingertips</h2>
-              <p className="text-slate-600 max-w-2xl mx-auto">Click on any tool below to start using it instantly. No registration required.</p>
+              <h2 className="font-heading text-3xl font-bold text-secondary mb-4">Agab xooggan oo farahaaga ku jira</h2>
+              <p className="text-slate-600 max-w-2xl mx-auto">Guji qalab kasta oo hoos ku yaal si aad isla markiiba u isticmaasho. Wax is-diiwaangalin ah looma baahna.</p>
             </div>
             
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -1183,22 +1164,22 @@ export default function App() {
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     referrerPolicy="no-referrer"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-secondary/90 via-secondary/20 to-transparent" />
                   
                   {/* Tag */}
-                  <div className="absolute top-5 left-5 bg-rose-500 text-white text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
+                  <div className="absolute top-5 left-5 bg-primary text-white text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
                     {tool.category}
                   </div>
                   
                   {/* Button */}
-                  <div className="absolute top-5 right-5 bg-slate-900/90 backdrop-blur-md text-rose-400 text-[10px] font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10 shadow-sm">
+                  <div className="absolute top-5 right-5 bg-secondary/80 backdrop-blur-md text-primary text-[10px] font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10 shadow-sm transition-all group-hover:bg-primary group-hover:text-white">
                     <ExternalLink className="w-3.5 h-3.5" /> {tool.buttonText}
                   </div>
                   
                   {/* Content */}
                   <div className="absolute bottom-6 left-6 right-6">
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center text-white">
+                      <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center text-white group-hover:bg-primary/40 transition-colors">
                         <tool.icon className="w-4 h-4" />
                       </div>
                       <h3 className="text-white font-bold text-xl leading-tight">{tool.name}</h3>
@@ -1215,57 +1196,60 @@ export default function App() {
         <section id="features" className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="font-heading text-3xl font-bold text-slate-900 mb-4">Why Choose AI Tools Hub?</h2>
-              <p className="text-slate-600 max-w-2xl mx-auto">We built this platform with user experience and performance in mind.</p>
+              <h2 className="font-heading text-3xl font-bold text-secondary mb-4">Maxaad u dooranaysaa Eagle Hub?</h2>
+              <p className="text-slate-600 max-w-2xl mx-auto">Waxaan u dhisnay madashan si aad u hesho waayo-aragnimo isticmaale oo fudud iyo waxqabad sare.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center p-6">
-                <div className="w-16 h-16 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <div className="text-center p-6 hover:translate-y-[-5px] transition-transform duration-300">
+                <div className="w-16 h-16 bg-primary-light/50 text-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
                   <Zap className="w-8 h-8" />
                 </div>
-                <h3 className="font-heading text-xl font-semibold mb-3">Lightning Fast</h3>
-                <p className="text-slate-600">Most tools run directly in your browser, providing instant results without server delays.</p>
+                <h3 className="font-heading text-xl font-semibold mb-3">Xawaare Sare</h3>
+                <p className="text-slate-600">Agabka intooda badan waxay si toos ah ugu dhex shaqeeyaan browser-kaaga, iyagoo ku siinaya natiijooyin degdeg ah.</p>
               </div>
-              <div className="text-center p-6">
-                <div className="w-16 h-16 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <div className="text-center p-6 hover:translate-y-[-5px] transition-transform duration-300">
+                <div className="w-16 h-16 bg-secondary-light/20 text-secondary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
                   <Shield className="w-8 h-8" />
                 </div>
-                <h3 className="font-heading text-xl font-semibold mb-3">Privacy First</h3>
-                <p className="text-slate-600">Your data is safe. We don't store your text or files on our servers after processing.</p>
+                <h3 className="font-heading text-xl font-semibold mb-3">Ammaanka Xogta</h3>
+                <p className="text-slate-600">Xogtaadu waa ammaan. Ma kaydinno qoraalkaaga ama faylashaada ka dib markaan dhammaystirno shaqada.</p>
               </div>
-              <div className="text-center p-6">
-                <div className="w-16 h-16 bg-purple-50 text-purple-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
+              <div className="text-center p-6 hover:translate-y-[-5px] transition-transform duration-300">
+                <div className="w-16 h-16 bg-primary-light/50 text-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
                   <Globe className="w-8 h-8" />
                 </div>
-                <h3 className="font-heading text-xl font-semibold mb-3">Accessible Anywhere</h3>
-                <p className="text-slate-600">Works perfectly on desktop, tablet, and mobile devices. No installation needed.</p>
+                <h3 className="font-heading text-xl font-semibold mb-3">Meel walba laga heli karo</h3>
+                <p className="text-slate-600">Wuxuu si fiican ugu shaqeeyaa computer-ka, tablet-ka, iyo mobile-ka. Looma baahna in la rakibo.</p>
               </div>
             </div>
           </div>
         </section>
 
         {/* Testimonials */}
-        <section className="py-20 bg-slate-900 text-white">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <section className="py-20 bg-secondary text-white relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -ml-32 -mb-32"></div>
+          
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="text-center mb-16">
-              <h2 className="font-heading text-3xl font-bold mb-4">Loved by Professionals</h2>
-              <p className="text-slate-400 max-w-2xl mx-auto">See what our users have to say about our tools.</p>
+              <h2 className="font-heading text-3xl font-bold mb-4">Waxaa ku kalsoon dadka xirfadlayaasha ah</h2>
+              <p className="text-slate-400 max-w-2xl mx-auto">Eeg waxa ay dadka isticmaala agabkayaga ka yiraahdeen.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {[
-                { name: "Sarah Jenkins", role: "Content Writer", text: "The Word Counter and Case Converter save me so much time every day. It's my go-to tab." },
-                { name: "David Chen", role: "Student", text: "The Image to Text converter is incredibly accurate. It helped me digitize all my handwritten notes." },
-                { name: "Emily Rodriguez", role: "Marketing Manager", text: "Clean, fast, and no annoying ads. Exactly what a utility site should be." }
+                { name: "Sarah Jenkins", role: "Content Writer", text: "Tirinta Erayada iyo Beddelaha Qoraalka waxay iga badbaadiyaan waqti badan maalin kasta. Waa agabka aan mar walba isticmaalo." },
+                { name: "Dahir Ali", role: "Student", text: "Sawir u beddel qoraalka waa mid aad u saxan. Waxay iga caawisay inaan dhammaan qoraalladaydii gacanta u beddelo digital." },
+                { name: "Emily Rodriguez", role: "Marketing Manager", text: "Waa mid nadiif ah, degdeg ah, mana laha xayeysiisyo dhib leh. Dhab ahaan waa waxa loo baahan yahay." }
               ].map((testimonial, i) => (
-                <div key={i} className="bg-slate-800 p-6 rounded-2xl border border-slate-700">
-                  <div className="flex text-amber-400 mb-4">
+                <div key={i} className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 hover:border-primary/50 transition-colors">
+                  <div className="flex text-primary mb-4">
                     {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4 fill-current" />)}
                   </div>
                   <p className="text-slate-300 mb-6">"{testimonial.text}"</p>
                   <div>
-                    <div className="font-semibold">{testimonial.name}</div>
+                    <div className="font-semibold text-white">{testimonial.name}</div>
                     <div className="text-sm text-slate-400">{testimonial.role}</div>
                   </div>
                 </div>
@@ -1278,18 +1262,18 @@ export default function App() {
         <section id="faq" className="py-20">
           <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12">
-              <h2 className="font-heading text-3xl font-bold text-slate-900 mb-4">Frequently Asked Questions</h2>
+              <h2 className="font-heading text-3xl font-bold text-secondary mb-4">Su'aalaha Inta badan la isweydiiyo</h2>
             </div>
             
             <div className="space-y-4">
               {faqs.map((faq, index) => (
-                <div key={index} className="border border-slate-200 rounded-xl overflow-hidden">
+                <div key={index} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
                   <button 
                     className="w-full px-6 py-4 text-left flex justify-between items-center bg-white hover:bg-slate-50 transition-colors"
                     onClick={() => setActiveFaq(activeFaq === index ? null : index)}
                   >
-                    <span className="font-medium text-slate-900">{faq.q}</span>
-                    {activeFaq === index ? <ChevronUp className="w-5 h-5 text-slate-500" /> : <ChevronDown className="w-5 h-5 text-slate-500" />}
+                    <span className="font-medium text-secondary">{faq.q}</span>
+                    {activeFaq === index ? <ChevronUp className="w-5 h-5 text-primary" /> : <ChevronDown className="w-5 h-5 text-slate-500" />}
                   </button>
                   <AnimatePresence>
                     {activeFaq === index && (
@@ -1316,18 +1300,18 @@ export default function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-rose-500 rounded flex items-center justify-center">
+              <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
                 <Coins className="w-3 h-3 text-white" />
               </div>
-              <span className="font-heading font-bold text-lg text-slate-900">Affiliate Hub</span>
+              <span className="font-heading font-bold text-lg text-secondary">Eagle Hub</span>
             </div>
             <div className="flex gap-6 text-sm font-medium text-slate-500">
-              <a href="#" className="hover:text-rose-600 transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-rose-600 transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-rose-600 transition-colors">Contact</a>
+              <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
+              <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
+              <a href="#" className="hover:text-primary transition-colors">Contact</a>
             </div>
-            <div className="text-sm text-slate-500">
-              &copy; {new Date().getFullYear()} AI Tools Hub. All rights reserved.
+            <div className="text-sm text-slate-500 font-medium">
+              &copy; {new Date().getFullYear()} Eagle AI Hub. Xuquuqda way dhowran tahay.
             </div>
           </div>
         </div>
@@ -1342,27 +1326,27 @@ export default function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setActiveTool(null)}
-              className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm"
+              className="absolute inset-0 bg-secondary/60 backdrop-blur-sm"
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-3xl bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
-              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100">
+              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100 bg-slate-50/50">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-rose-50 text-rose-600 rounded-lg flex items-center justify-center">
+                  <div className="w-10 h-10 bg-primary-light/50 text-primary-dark rounded-lg flex items-center justify-center shadow-inner">
                     <activeTool.icon className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="font-heading text-xl font-bold text-slate-900">{activeTool.name}</h2>
+                    <h2 className="font-heading text-xl font-bold text-secondary">{activeTool.name}</h2>
                     <p className="text-sm text-slate-500 hidden sm:block">{activeTool.description}</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setActiveTool(null)}
-                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="p-2 text-slate-400 hover:text-secondary hover:bg-slate-200 rounded-lg transition-colors shadow-sm"
                 >
                   <X className="w-6 h-6" />
                 </button>
