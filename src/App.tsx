@@ -1051,7 +1051,7 @@ export default function App() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   const faqs = [
-    { q: "Miyaan isticmaali karaa qalabkan si lacag la'aan ah?", a: "Haa, dhammaan agabka ku jira Eagle Hub waa bilaash, mana jiraan khidmado qarsoon." },
+    { q: "Miyaan isticmaali karaa qalabkan si lacag la'aan ah?", a: "Haa, dhammaan agabka ku jira Dualeabditools waa bilaash, mana jiraan khidmado qarsoon." },
     { q: "Xogtaydu miyay ammaan tahay?", a: "Xaqiiqdii. Wax walba waxaan ku dhex shaqaynaa browser-kaaga ama si ammaan ah ayaan API ugu dirnaa, marnaba ma kaydinno faylashaada ama qoraalkaaga." },
     { q: "Ma u baahanahay inaan account furtay?", a: "Maya, looma baahna inaad account furato. Waxaad isla markiiba bilaabi kartaa isticmaalka agabkayaga." },
     { q: "Intee ayay le'eg tahay saxsanaanta beddelaha Sawirka u beddelaya Qoraalka?", a: "Waxaan isticmaalnaa moodallo AI oo horumarsan si loo hubiyo saxsanaan sare, xitaa qoraallada gacanta lagu qoray ama kuwa adag." }
@@ -1067,7 +1067,7 @@ export default function App() {
               <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
                 <Coins className="w-5 h-5 text-white" />
               </div>
-              <span className="font-heading font-bold text-xl tracking-tight text-secondary">Eagle Hub</span>
+              <span className="font-heading font-bold text-xl tracking-tight text-secondary">Dualeabditools</span>
             </div>
             
             {/* Desktop Menu */}
@@ -1124,7 +1124,7 @@ export default function App() {
                 Habka ugu fudud ee <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Shaqadaada AI</span>
               </h1>
               <p className="max-w-2xl mx-auto text-lg sm:text-xl text-slate-600 mb-10">
-                Eagle Hub waa meesha aad ka helayso agabka ugu fiican ee affiliate marketing-ka. Soo saar qoraal, diyaari cover, oo ku fududee shaqadaada AI.
+                Dualeabditools waa meesha aad ka helayso agabka ugu fiican ee affiliate marketing-ka. Soo saar qoraal, diyaari cover, oo ku fududee shaqadaada AI.
               </p>
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <a href="#tools" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-medium text-white bg-primary hover:bg-primary-dark rounded-xl transition-all shadow-md hover:shadow-lg">
@@ -1303,7 +1303,7 @@ export default function App() {
               <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
                 <Coins className="w-3 h-3 text-white" />
               </div>
-              <span className="font-heading font-bold text-lg text-secondary">Eagle Hub</span>
+              <span className="font-heading font-bold text-lg text-secondary">Dualeabditools</span>
             </div>
             <div className="flex gap-6 text-sm font-medium text-slate-500">
               <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
@@ -1311,7 +1311,7 @@ export default function App() {
               <a href="#" className="hover:text-primary transition-colors">Contact</a>
             </div>
             <div className="text-sm text-slate-500 font-medium">
-              &copy; {new Date().getFullYear()} Eagle AI Hub. Xuquuqda way dhowran tahay.
+              &copy; {new Date().getFullYear()} Dualeabditools. Xuquuqda way dhowran tahay.
             </div>
           </div>
         </div>
