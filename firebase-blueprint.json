@@ -1,0 +1,23 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a user and their usage statistics.",
+      "type": "object",
+      "properties": {
+        "email": { "type": "string" },
+        "credits": { "type": "integer" },
+        "tier": { "type": "string", "enum": ["free", "pro", "max"] },
+        "lastReset": { "type": "string", "format": "date-time" },
+        "totalUsage": { "type": "integer" }
+      },
+      "required": ["email", "credits", "tier"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "Individual user document."
+    }
+  }
+}

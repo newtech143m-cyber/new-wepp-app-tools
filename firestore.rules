@@ -1,0 +1,70 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helpers ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isVerified() {
+      return request.auth.token.email_verified == true;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && request.auth.token.email == 'newtech143m@gmail.com';
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    // --- Entity Validations ---
+    function isValidUser(data) {
+      return data.keys().hasAll(['email', 'credits', 'tier']) &&
+             data.email is string &&
+             data.credits is int &&
+             data.tier in ['free', 'pro', 'max'] &&
+             (!('lastReset' in data) || data.lastReset is timestamp) &&
+             (!('totalUsage' in data) || data.totalUsage is int);
+    }
+
+    // --- Collection Routes ---
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      
+      // Only the user themselves can list their info (though usually get is enough for profiles)
+      allow list: if isAdmin(); 
+
+      allow create: if isOwner(userId) && 
+                      isValidUser(request.resource.data) &&
+                      request.resource.data.email == request.auth.token.email &&
+                      request.resource.data.tier == 'free' &&
+                      request.resource.data.credits == 5; // Initial free credits
+
+      allow update: if (isOwner(userId) || isAdmin()) && (
+        // Action: Consume Credit
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['credits', 'totalUsage']) &&
+          request.resource.data.credits == resource.data.credits - 1 &&
+          request.resource.data.totalUsage == (resource.data.totalUsage ? resource.data.totalUsage : 0) + 1
+        ) ||
+        // Action: Admin Upgrade (or manual reset)
+        isAdmin() ||
+        // Action: Self-Update (limited fields)
+        (isOwner(userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email']))
+      );
+      
+      allow delete: if isAdmin();
+    }
+  }
+}

@@ -30,10 +30,34 @@ import {
   DollarSign,
   TrendingUp,
   ExternalLink,
-  FileSpreadsheet
+  FileSpreadsheet,
+  LogIn,
+  LogOut,
+  User as UserIcon,
+  CreditCard,
+  Lock
 } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import * as XLSX from 'xlsx';
+import { useAuth } from './contexts/AuthContext';
+import { signInWithPopup, signOut, googleProvider } from './lib/firebase';
+
+// --- UI Components ---
+const CreditWallet = () => {
+  const { userData, isAdmin, user } = useAuth();
+  if (!user) return null;
+  return (
+    <div className="flex items-center gap-2 px-3 py-1.5 bg-primary-light/30 border border-primary/20 rounded-full">
+      <Coins className="w-3.5 h-3.5 text-primary" />
+      <span className="text-xs font-bold text-primary-dark">
+        {isAdmin ? 'UNLIMITED' : `${userData?.credits || 0} Credits`}
+      </span>
+      <span className="text-[10px] text-slate-500 font-medium px-1.5 py-0.5 bg-white rounded-md border border-slate-200 uppercase">
+        {userData?.tier || 'Free'}
+      </span>
+    </div>
+  );
+};
 
 // --- Tool Components ---
 
@@ -127,6 +151,7 @@ const RemoveExtraSpaces = () => {
 };
 
 const ImageToText = () => {
+  const { consumeCredit, user } = useAuth();
   const [image, setImage] = useState<string | null>(null);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
@@ -145,8 +170,20 @@ const ImageToText = () => {
 
   const extractText = async () => {
     if (!image) return;
+    if (!user) {
+      alert('Fadlan marka hore soo gal (Login) si aad u isticmaasho AI-ga.');
+      return;
+    }
+    
     setLoading(true);
     try {
+      const success = await consumeCredit();
+      if (!success) {
+        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
+        setLoading(false);
+        return;
+      }
+
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const base64Data = image.split(',')[1];
       const mimeType = image.split(';')[0].split(':')[1];
@@ -234,6 +271,7 @@ const ImageToText = () => {
 };
 
 const JpgToWord = () => {
+  const { consumeCredit, user } = useAuth();
   const [image, setImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -251,8 +289,19 @@ const JpgToWord = () => {
 
   const convertToWord = async () => {
     if (!image) return;
+    if (!user) {
+      alert('Fadlan marka hore soo gal (Login) si aad u isticmaasho AI-ga.');
+      return;
+    }
+
     setLoading(true);
     try {
+      const success = await consumeCredit();
+      if (!success) {
+        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
+        setLoading(false);
+        return;
+      }
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const base64Data = image.split(',')[1];
       const mimeType = image.split(';')[0].split(':')[1];
@@ -337,6 +386,7 @@ const JpgToWord = () => {
 };
 
 const TitleToImage = () => {
+  const { consumeCredit, user } = useAuth();
   const [title, setTitle] = useState('');
   const [tagText, setTagText] = useState('AFFILIATE MARKETING');
   const [buttonText, setButtonText] = useState('Affiliate');
@@ -355,8 +405,19 @@ const TitleToImage = () => {
 
   const generateImage = async () => {
     if (!title.trim()) return;
+    if (!user) {
+      alert('Fadlan marka hore soo gal (Login) si aad u isticmaasho AI-ga.');
+      return;
+    }
+
     setLoading(true);
     try {
+      const success = await consumeCredit();
+      if (!success) {
+        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
+        setLoading(false);
+        return;
+      }
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       
       const capitalizedTitle = title.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
@@ -546,6 +607,7 @@ const TitleToImage = () => {
 };
 
 const BackgroundGenerator = () => {
+  const { consumeCredit, user } = useAuth();
   const [colorTheme, setColorTheme] = useState('Soft Pastel Blue');
   const [bgStyle, setBgStyle] = useState('Soft Gradient');
   const [imageUrl, setImageUrl] = useState<string | null>(null);
@@ -569,8 +631,19 @@ const BackgroundGenerator = () => {
   ];
 
   const generateBackground = async () => {
+    if (!user) {
+      alert('Fadlan marka hore soo gal (Login) si aad u isticmaasho AI-ga.');
+      return;
+    }
+
     setLoading(true);
     try {
+      const success = await consumeCredit();
+      if (!success) {
+        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
+        setLoading(false);
+        return;
+      }
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       
       const response = await ai.models.generateContent({
@@ -705,6 +778,7 @@ const BackgroundGenerator = () => {
 };
 
 const PdfToExcelNames = () => {
+  const { consumeCredit, user } = useAuth();
   const [files, setFiles] = useState<{ id: string; file: File }[]>([]);
   const [loading, setLoading] = useState(false);
   const [extractedData, setExtractedData] = useState<Record<string, string[]>>({});
@@ -727,6 +801,11 @@ const PdfToExcelNames = () => {
 
   const processPdfs = async () => {
     if (files.length === 0) return;
+    if (!user) {
+      alert('Fadlan marka hore soo gal (Login) si aad u isticmaasho AI-ga.');
+      return;
+    }
+
     setLoading(true);
     try {
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
@@ -734,6 +813,12 @@ const PdfToExcelNames = () => {
       
       for (const { id, file } of files) {
         if (newData[id]) continue;
+        
+        const success = await consumeCredit();
+        if (!success) {
+          alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
+          break;
+        }
 
         const reader = new FileReader();
         const loadPromise = new Promise<string>((resolve) => {
@@ -1046,16 +1131,33 @@ const tools = [
 // --- Main Application ---
 
 export default function App() {
+  const { user, loading: authLoading } = useAuth();
   const [activeTool, setActiveTool] = useState<typeof tools[0] | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
 
   const faqs = [
-    { q: "Miyaan isticmaali karaa qalabkan si lacag la'aan ah?", a: "Haa, dhammaan agabka ku jira Dualeabditools waa bilaash, mana jiraan khidmado qarsoon." },
+    { q: "Miyaan isticmaali karaa qalabkan si lacag la'aan ah?", a: "Haa, Dualeabditools waxay bixisaa 5 Credits oo bilaash ah maalin kasta oo aad ku isticmaali karto agabka AI-ga." },
+    { q: "Sideen u heli karaa Credits dheeraad ah?", a: "Waxaad u baahan tahay inaad gasho (Login) si aad u hesho 5 credits ee bilaashka ah. Haddii aad u baahan tahay in kabadan, waxaad iska diiwaangelin kartaa qorshayaasha Pro ama Max." },
     { q: "Xogtaydu miyay ammaan tahay?", a: "Xaqiiqdii. Wax walba waxaan ku dhex shaqaynaa browser-kaaga ama si ammaan ah ayaan API ugu dirnaa, marnaba ma kaydinno faylashaada ama qoraalkaaga." },
-    { q: "Ma u baahanahay inaan account furtay?", a: "Maya, looma baahna inaad account furato. Waxaad isla markiiba bilaabi kartaa isticmaalka agabkayaga." },
-    { q: "Intee ayay le'eg tahay saxsanaanta beddelaha Sawirka u beddelaya Qoraalka?", a: "Waxaan isticmaalnaa moodallo AI oo horumarsan si loo hubiyo saxsanaan sare, xitaa qoraallada gacanta lagu qoray ama kuwa adag." }
+    { q: "Ma u baahanahay inaan account furtay?", a: "Haa, si aad u isticmaasho agabka AI-ga (sida sawir u beddel qoraal), waxaad u baahan tahay inaad ku soo gasho Google account-kaaga." }
   ];
+
+  const handleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+    } catch (error) {
+      console.error(error);
+    }
+  };
 
   return (
     <div className="min-h-screen flex flex-col font-sans text-slate-800">
@@ -1071,14 +1173,38 @@ export default function App() {
             </div>
             
             {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-6">
               <a href="#home" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Home</a>
               <a href="#tools" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Tools</a>
-              <a href="#features" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Features</a>
-              <a href="#faq" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">FAQ</a>
-              <button className="px-4 py-2 bg-secondary hover:bg-slate-800 text-white rounded-lg text-sm font-medium transition-colors">
-                Get Started
-              </button>
+              <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Pricing</a>
+              
+              {user ? (
+                <div className="flex items-center gap-4">
+                  <CreditWallet />
+                  <div className="flex items-center gap-2 pl-4 border-l border-slate-200">
+                    <img 
+                      src={user.photoURL || ''} 
+                      alt={user.displayName || ''} 
+                      className="w-8 h-8 rounded-full border border-primary/20"
+                    />
+                    <button 
+                      onClick={handleLogout}
+                      className="p-2 text-slate-400 hover:text-rose-500 transition-colors"
+                      title="Logout"
+                    >
+                      <LogOut className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button 
+                  onClick={handleLogin}
+                  disabled={authLoading}
+                  className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-slate-800 text-white rounded-lg text-sm font-medium transition-colors shadow-sm"
+                >
+                  <LogIn className="w-4 h-4" /> Soo gal (Login)
+                </button>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -1102,8 +1228,15 @@ export default function App() {
               <div className="px-4 pt-2 pb-4 space-y-1">
                 <a href="#home" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Home</a>
                 <a href="#tools" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Tools</a>
-                <a href="#features" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Features</a>
-                <a href="#faq" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">FAQ</a>
+                <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Pricing</a>
+                {user ? (
+                  <div className="px-3 py-2 flex items-center justify-between">
+                    <CreditWallet />
+                    <button onClick={handleLogout} className="text-rose-500 font-medium text-sm">Logout</button>
+                  </div>
+                ) : (
+                  <button onClick={handleLogin} className="w-full text-left px-3 py-2 text-primary font-medium">Login</button>
+                )}
               </div>
             </motion.div>
           )}
@@ -1196,7 +1329,7 @@ export default function App() {
         <section id="features" className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="font-heading text-3xl font-bold text-secondary mb-4">Maxaad u dooranaysaa Eagle Hub?</h2>
+              <h2 className="font-heading text-3xl font-bold text-secondary mb-4">Maxaad u dooranaysaa Dualeabditools?</h2>
               <p className="text-slate-600 max-w-2xl mx-auto">Waxaan u dhisnay madashan si aad u hesho waayo-aragnimo isticmaale oo fudud iyo waxqabad sare.</p>
             </div>
             
@@ -1219,8 +1352,86 @@ export default function App() {
                 <div className="w-16 h-16 bg-primary-light/50 text-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
                   <Globe className="w-8 h-8" />
                 </div>
-                <h3 className="font-heading text-xl font-semibold mb-3">Meel walba laga heli karo</h3>
+                <h3 className="font-heading text-xl font-semibold mb-3">Meel walba laga heli karaa</h3>
                 <p className="text-slate-600">Wuxuu si fiican ugu shaqeeyaa computer-ka, tablet-ka, iyo mobile-ka. Looma baahna in la rakibo.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Pricing Section */}
+        <section id="pricing" className="py-20 bg-slate-50 border-y border-slate-200">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-16">
+              <h2 className="font-heading text-3xl font-bold text-secondary mb-4">Qorshayaasha Qiimaha</h2>
+              <p className="text-slate-600 max-w-2xl mx-auto">U dooro qorshaha ku habboon baahidaada shaqo.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Free Plan */}
+              <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-bl-[5rem] -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                <h3 className="font-heading text-xl font-bold text-secondary mb-2">FREE</h3>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="text-4xl font-extrabold text-secondary">$0</span>
+                  <span className="text-slate-500 text-sm">/month</span>
+                </div>
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-2 text-slate-600 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" /> 5 Credits Maalintii
+                  </li>
+                  <li className="flex items-center gap-2 text-slate-600 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-green-500" /> Dhammaan Agabka (Basic)
+                  </li>
+                  <li className="flex items-center gap-2 text-slate-400 text-sm italic">
+                    <X className="w-4 h-4" /> Usage Limited
+                  </li>
+                </ul>
+                <button className="w-full py-3 px-4 bg-slate-100 text-secondary font-bold rounded-xl hover:bg-slate-200 transition-colors">Hadda Isticmaal</button>
+              </div>
+
+              {/* Pro Plan */}
+              <div className="bg-white p-8 rounded-[2.5rem] border-2 border-primary shadow-xl relative overflow-hidden group transform md:-translate-y-4">
+                <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold px-6 py-1.5 rotate-45 translate-x-8 translate-y-4 uppercase tracking-widest">Popular</div>
+                <h3 className="font-heading text-xl font-bold text-primary mb-2">PRO</h3>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="text-4xl font-extrabold text-secondary">$15</span>
+                  <span className="text-slate-500 text-sm">/month</span>
+                </div>
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-2 text-slate-600 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary" /> 50 Credits Maalintii
+                  </li>
+                  <li className="flex items-center gap-2 text-slate-600 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary" /> High Priority Processing
+                  </li>
+                  <li className="flex items-center gap-2 text-slate-600 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-primary" /> Mark-ga Hub-ka oo laga saaray
+                  </li>
+                </ul>
+                <button className="w-full py-3 px-4 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-lg">Ku biir Hadda</button>
+              </div>
+
+              {/* Max Plan */}
+              <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
+                <div className="absolute top-0 right-0 w-24 h-24 bg-primary-light/30 rounded-bl-[5rem] -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
+                <h3 className="font-heading text-xl font-bold text-secondary mb-2">MAX</h3>
+                <div className="flex items-baseline gap-1 mb-6">
+                  <span className="text-4xl font-extrabold text-secondary">$49</span>
+                  <span className="text-slate-500 text-sm">/month</span>
+                </div>
+                <ul className="space-y-4 mb-8">
+                  <li className="flex items-center gap-2 text-slate-600 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-secondary" /> Unlimited Credits
+                  </li>
+                  <li className="flex items-center gap-2 text-slate-600 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-secondary" /> Dedicated Support
+                  </li>
+                  <li className="flex items-center gap-2 text-slate-600 text-sm">
+                    <CheckCircle2 className="w-4 h-4 text-secondary" /> Agab Cusub (Beta)
+                  </li>
+                </ul>
+                <button className="w-full py-3 px-4 bg-secondary text-white font-bold rounded-xl hover:bg-slate-800 transition-colors">Noqo Max</button>
               </div>
             </div>
           </div>
