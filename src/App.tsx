@@ -40,7 +40,7 @@ import {
 import { GoogleGenAI } from '@google/genai';
 import * as XLSX from 'xlsx';
 import { useAuth } from './contexts/AuthContext';
-import { signInWithPopup, signOut, googleProvider } from './lib/firebase';
+import { auth, signInWithPopup, signOut, googleProvider } from './lib/firebase';
 
 // --- UI Components ---
 const CreditWallet = () => {
