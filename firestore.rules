@@ -30,10 +30,11 @@ service cloud.firestore {
 
     // --- Entity Validations ---
     function isValidUser(data) {
-      return data.keys().hasAll(['email', 'credits', 'tier']) &&
+      return data.keys().hasAll(['email', 'credits', 'tier', 'createdAt']) &&
              data.email is string &&
              data.credits is int &&
              data.tier in ['free', 'pro', 'max'] &&
+             data.createdAt is timestamp &&
              (!('lastReset' in data) || data.lastReset is timestamp) &&
              (!('totalUsage' in data) || data.totalUsage is int);
     }
@@ -42,14 +43,13 @@ service cloud.firestore {
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
       
-      // Only the user themselves can list their info (though usually get is enough for profiles)
       allow list: if isAdmin(); 
 
       allow create: if isOwner(userId) && 
                       isValidUser(request.resource.data) &&
-                      request.resource.data.email == request.auth.token.email &&
+                      (request.resource.data.email == request.auth.token.email || !('email' in request.auth.token)) &&
                       request.resource.data.tier == 'free' &&
-                      request.resource.data.credits == 5; // Initial free credits
+                      request.resource.data.credits == 5;
 
       allow update: if (isOwner(userId) || isAdmin()) && (
         // Action: Consume Credit
@@ -58,10 +58,10 @@ service cloud.firestore {
           request.resource.data.credits == resource.data.credits - 1 &&
           request.resource.data.totalUsage == (resource.data.totalUsage ? resource.data.totalUsage : 0) + 1
         ) ||
-        // Action: Admin Upgrade (or manual reset)
+        // Action: Admin Upgrade
         isAdmin() ||
-        // Action: Self-Update (limited fields)
-        (isOwner(userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email']))
+        // Action: Self-Update
+        (isOwner(userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email']) && request.resource.data.email == request.auth.token.email)
       );
       
       allow delete: if isAdmin();

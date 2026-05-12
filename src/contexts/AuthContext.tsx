@@ -32,15 +32,22 @@ export enum OperationType {
 function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
   const errInfo = {
     error: error instanceof Error ? error.message : String(error),
+    stack: error instanceof Error ? error.stack : undefined,
     authInfo: {
       userId: auth.currentUser?.uid,
       email: auth.currentUser?.email,
       emailVerified: auth.currentUser?.emailVerified,
+      providerData: auth.currentUser?.providerData.map(p => ({ providerId: p.providerId, email: p.email }))
     },
     operationType,
     path
   };
-  console.error('Firestore Error: ', JSON.stringify(errInfo));
+  console.group('Firestore Error Details');
+  console.error('Message:', errInfo.error);
+  console.error('Operation:', errInfo.operationType);
+  console.error('Path:', errInfo.path);
+  console.debug('Full Metadata:', JSON.stringify(errInfo, null, 2));
+  console.groupEnd();
   throw new Error(JSON.stringify(errInfo));
 }
 
@@ -98,11 +105,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const consumeCredit = async () => {
-    // Unlimited for admin
     if (isAdmin) return true; 
 
     if (!user) {
-      // Trial logic for logged out users
       if (trialCount < 2) {
         setTrialCount(prev => prev + 1);
         return true;
@@ -110,18 +115,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     }
 
-    if (userData && userData.credits > 0) {
-      try {
-        const userDocRef = doc(db, 'users', user.uid);
-        await updateDoc(userDocRef, {
-          credits: increment(-1),
-          totalUsage: increment(1)
-        });
-        return true;
-      } catch (error) {
-        handleFirestoreError(error, OperationType.UPDATE, `users/${user.uid}`);
-        return false;
+    // Give new users a moment to initialize or handle missing doc
+    try {
+      const userDocRef = doc(db, 'users', user.uid);
+      
+      // If we don't have userData yet, it might be a newly logged in user
+      // We can try to get the doc directly or wait for the snapshot
+      if (userData) {
+        if (userData.credits > 0) {
+          await updateDoc(userDocRef, {
+            credits: increment(-1),
+            totalUsage: increment(1)
+          });
+          return true;
+        }
+      } else {
+        // Fallback for extremely quick first actions
+        // This is rare but possible. We allow it if the create/onSnapshot loop is still running
+        // Or we can just wait 500ms
+        await new Promise(resolve => setTimeout(resolve, 500));
+        if (userData && userData.credits > 0) {
+          await updateDoc(userDocRef, {
+            credits: increment(-1),
+            totalUsage: increment(1)
+          });
+          return true;
+        }
       }
+    } catch (error) {
+      handleFirestoreError(error, OperationType.UPDATE, `users/${user.uid}`);
     }
     return false;
   };
