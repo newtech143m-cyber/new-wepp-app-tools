@@ -58,100 +58,95 @@ const ProcessingAnimation = ({ toolName, icon: Icon }: { toolName: string, icon:
   const [progress, setProgress] = useState(0);
 
   const steps = [
-    { label: 'Reading file...', min: 0 },
-    { label: 'Processing data...', min: 30 },
-    { label: 'Finalizing...', min: 70 },
+    { label: 'Analyzing request...', min: 0 },
+    { label: 'AI Processing...', min: 30 },
+    { label: 'Finalizing result...', min: 70 },
   ];
 
   useEffect(() => {
-    const duration = 3000;
+    const duration = 2500;
     const startTime = Date.now();
 
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const p = Math.min(elapsed / duration, 1);
       setProgress(Math.round(p * 100));
-      if (p >= 1) clearInterval(interval);
+      if (p >= 1) {
+        clearInterval(interval);
+        playCompleteSound();
+      }
     }, 50);
 
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <div className="relative overflow-hidden bg-[#f8fafc] rounded-[2.5rem] p-8 min-h-[480px] w-full flex flex-col items-center justify-center border border-slate-200 shadow-2xl">
-      {/* Background Stripes */}
-      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
-           style={{ 
-             backgroundImage: 'repeating-linear-gradient(45deg, #000, #000 40px, transparent 40px, transparent 80px)',
-             backgroundSize: '200% 200%'
-           }} 
-      />
+    <div className="relative overflow-hidden bg-[#0b0d11] rounded-[3rem] p-12 min-h-[520px] w-full flex flex-col items-center justify-center border border-white/5 shadow-[0_40px_100px_rgba(0,0,0,0.6)]">
+      {/* Background Glow */}
+      <div className="absolute inset-0 bg-primary/5 blur-[120px] pointer-events-none" />
       
       <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
         {/* Main Icon Card */}
         <motion.div 
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className="w-40 h-40 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center mb-8 relative border border-slate-50 overflow-hidden group"
+          className="w-44 h-44 bg-white/5 rounded-[2.5rem] shadow-2xl flex items-center justify-center mb-10 relative border border-white/10 overflow-hidden group"
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-blue-500/5 group-hover:opacity-100 transition-opacity" />
-          <div className="relative p-6 bg-gradient-to-tr from-slate-50 to-white rounded-2xl shadow-inner border border-white">
-            <Icon className="w-20 h-20 text-green-700 drop-shadow-2xl" />
+          <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent group-hover:opacity-100 transition-opacity" />
+          <div className="relative p-7 bg-white/10 backdrop-blur-xl rounded-3xl border border-white/10">
+            <Icon className="w-20 h-20 text-primary drop-shadow-[0_0_20px_rgba(0,255,120,0.4)]" />
           </div>
           
           {/* Animated Glow */}
           <motion.div 
             animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.1, 0.2, 0.1]
+              scale: [1, 1.3, 1],
+              opacity: [0.2, 0.4, 0.2]
             }}
-            transition={{ duration: 3, repeat: Infinity }}
-            className="absolute -inset-10 bg-green-400 rounded-full blur-[60px] pointer-events-none"
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute -inset-10 bg-primary rounded-full blur-[80px] pointer-events-none"
           />
         </motion.div>
 
-        <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-6">
-          Processing {toolName}
+        <h3 className="text-2xl font-black text-white uppercase tracking-widest mb-8 text-center leading-tight">
+          AI {toolName} <br />
+          <span className="text-primary text-sm tracking-[0.4em]">In Progress</span>
         </h3>
 
         {/* Progress Bar Container */}
-        <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden mb-4 p-0.5">
-          <motion.div 
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            className="h-full bg-green-700 rounded-full shadow-[0_0_10px_rgba(21,128,61,0.5)]"
-          />
-        </div>
-
-        <div className="text-green-800 font-black text-xl mb-10 tracking-tight">
-          {progress}% complete
+        <div className="w-full space-y-4 mb-12">
+          <div className="flex justify-between items-end">
+             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">System Load</span>
+             <span className="text-[10px] font-black text-primary uppercase tracking-widest">{progress}% READY</span>
+          </div>
+          <div className="w-full h-2.5 bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
+            <motion.div 
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              className="h-full bg-primary rounded-full shadow-[0_0_20px_rgba(0,255,120,0.6)]"
+            />
+          </div>
         </div>
 
         {/* Status Steps */}
-        <div className="w-full space-y-5 px-6">
+        <div className="w-full space-y-6">
           {steps.map((step, idx) => {
-            const isCompleted = progress > step.min + 20;
-            const isActive = progress >= step.min && progress < step.min + 20;
+            const isCompleted = progress > step.min + 15;
+            const isActive = progress >= step.min && progress < step.min + 15;
 
             return (
-              <div key={idx} className={`flex items-center gap-5 transition-all duration-700 ${!isActive && !isCompleted ? 'opacity-30 scale-95' : 'opacity-100 scale-100'}`}>
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${
-                  isCompleted ? 'bg-green-600 border-green-600 shadow-[0_0_15px_rgba(22,163,74,0.4)]' : 
-                  isActive ? 'border-green-600' : 
-                  'border-slate-300'
+              <div key={idx} className={`flex items-center gap-6 transition-all duration-500 ${!isActive && !isCompleted ? 'opacity-20 grayscale' : 'opacity-100'}`}>
+                <div className={`w-6 h-6 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                  isCompleted ? 'bg-primary border-primary shadow-[0_0_15px_rgba(0,255,120,0.4)]' : 
+                  isActive ? 'border-primary animate-pulse' : 
+                  'border-white/10'
                 }`}>
-                  {isCompleted ? (
-                    <CheckCircle2 className="w-5 h-5 text-white" />
-                  ) : isActive ? (
-                    <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" />
-                  ) : (
-                    <div className="w-1.5 h-1.5 bg-slate-300 rounded-full" />
-                  )}
+                  {isCompleted && <CheckCircle2 className="w-3.5 h-3.5 text-black" />}
                 </div>
-                <span className={`text-sm font-black tracking-wide ${
-                  isCompleted ? 'text-green-800' : 
-                  isActive ? 'text-slate-900' : 
-                  'text-slate-400'
+                <span className={`text-[10px] font-black tracking-[0.2em] uppercase ${
+                  isCompleted ? 'text-primary' : 
+                  isActive ? 'text-white' : 
+                  'text-slate-500'
                 }`}>
                   {step.label}
                 </span>
@@ -165,21 +160,23 @@ const ProcessingAnimation = ({ toolName, icon: Icon }: { toolName: string, icon:
       <AnimatePresence>
         {progress === 100 && (
           <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-white/95 backdrop-blur-xl z-20 flex flex-col items-center justify-center p-8 text-center"
+            className="absolute inset-0 bg-[#0b0d11]/95 backdrop-blur-3xl z-20 flex flex-col items-center justify-center p-12 text-center"
           >
             <motion.div
-              initial={{ scale: 0, rotate: -45 }}
+              initial={{ scale: 0, rotate: -180 }}
               animate={{ scale: 1, rotate: 0 }}
-              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
-              className="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mb-8 shadow-2xl relative border-4 border-white"
+              transition={{ type: 'spring', stiffness: 260, damping: 20 }}
+              className="w-40 h-40 bg-primary/20 rounded-[3rem] flex items-center justify-center mb-10 shadow-[0_0_50px_rgba(0,255,120,0.2)] relative border border-primary/20"
             >
-              <CheckCircle2 className="w-20 h-20 text-green-600" />
+               <div className="absolute inset-0 bg-primary/10 rounded-[3rem] blur-2xl pulse" />
+               <CheckCircle2 className="w-24 h-24 text-primary relative z-10" />
             </motion.div>
-            <h4 className="text-3xl font-black text-slate-900 mb-3 uppercase tracking-tighter">SUCCESSFUL!</h4>
-            <p className="text-slate-500 font-bold max-w-[200px]">Your file is processed and ready.</p>
+            <h4 className="text-4xl font-black text-white mb-4 uppercase tracking-widest">Done!</h4>
+            <div className="h-1 w-12 bg-primary rounded-full mb-6 mx-auto" />
+            <p className="text-slate-500 font-bold text-sm leading-relaxed max-w-[240px]">The processing is complete. Your result is ready.</p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -1444,175 +1441,158 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean
         className="absolute inset-0 bg-secondary/80 backdrop-blur-md"
       />
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        initial={{ opacity: 0, scale: 0.95, y: 40 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden p-8"
+        exit={{ opacity: 0, scale: 0.95, y: 40 }}
+        className="relative w-full max-w-[440px] bg-[#161a22] rounded-[3rem] shadow-[0_40px_120px_rgba(0,0,0,0.8)] overflow-hidden border border-primary/20"
       >
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-secondary hover:bg-slate-100 rounded-full transition-colors"
+          className="absolute top-8 right-8 p-3 text-slate-500 hover:text-white hover:bg-white/5 rounded-full transition-all z-10"
         >
           <X className="w-5 h-5" />
         </button>
 
-        <div className="flex flex-col items-center w-full">
-          <div className="w-16 h-16 bg-primary-light/30 text-primary rounded-2xl flex items-center justify-center mb-6">
-            <Lock className="w-8 h-8" />
-          </div>
-          
-          <div className="text-center mb-8">
-            <h3 className="font-heading text-2xl font-bold text-secondary mb-2">
-              {authMode === 'login' ? 'Ku Soo Gal' : authMode === 'signup' ? 'Is Diiwaangeli' : 'Reset Password'}
+        <div className="p-12">
+          {/* Modal Header */}
+          <div className="text-center mb-10">
+            <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto mb-6 border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.1)]">
+              <Zap className="w-8 h-8" />
+            </div>
+            <h3 className="font-heading font-black text-3xl text-white tracking-tighter uppercase">
+              {authMode === 'login' ? 'Ku Soo Gal' : authMode === 'signup' ? 'Is Diiwaangeli' : 'Beddel Password-ka'}
             </h3>
-            <p className="text-slate-500 text-sm">
-              {authMode === 'login' 
-                ? 'Geli xogtaada si aad u sii waddo isticmaalka agabka AI-ga.' 
-                : authMode === 'signup' 
-                ? 'Abuur account cusub si aad u hesho 5 credits oo bilaash ah.'
-                : 'Geli email-kaaga si aad u hesho link-ga password-ka lagu beddelo.'}
+            <p className="text-slate-500 mt-3 font-bold text-sm">
+              {authMode === 'login' ? 'Geli xogtaada si aad u isticmaasho AI-ga' : authMode === 'signup' ? 'Ku biir kumannaan isticmaale maanta' : 'Geli email-kaaga si aad password u beddesho'}
             </p>
           </div>
 
           {authMode === 'forgot' ? (
-            <form onSubmit={handleForgotPassword} className="w-full space-y-4">
+            <form onSubmit={handleForgotPassword} className="space-y-6">
               {resetSent ? (
-                <div className="p-4 bg-green-50 text-green-700 rounded-xl text-center text-sm font-medium">
-                  Email ayaa loo soo diray email-kaaga. Fadlan hubi sanduuqaaga (Inbox).
+                <div className="p-6 bg-primary/10 border border-primary/20 rounded-2xl text-center">
+                   <p className="text-primary font-black text-sm uppercase tracking-widest">Email waa la diray!</p>
+                   <p className="text-slate-400 text-xs mt-2 font-bold">Hubi sanduuqaaga (Inbox) si aad u hesho link-ga.</p>
                 </div>
               ) : (
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">Email</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Email-kaaga</label>
                     <input 
                       type="email" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
+                      className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-[1.5rem] text-white focus:border-primary focus:ring-0 transition-all font-bold placeholder:text-slate-700 shadow-inner" 
                       placeholder="tusaale@gmail.com"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
                       required
                     />
                   </div>
-                </div>
-              )}
-              {!resetSent && (
-                <button 
-                  type="submit"
-                  disabled={isAuthLoading}
-                  className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all shadow-lg"
-                >
-                  {isAuthLoading ? 'Waa la soo dirayaa...' : 'Soo Dir Link-ga'}
-                </button>
+                  <button className="w-full py-4 bg-primary hover:bg-primary-dark text-black rounded-[1.5rem] font-black uppercase tracking-widest transition-all shadow-lg">
+                    {isAuthLoading ? 'Waa la dirayaa...' : 'Soo dir Link-ga'}
+                  </button>
+                </>
               )}
               <button 
                 type="button"
                 onClick={() => { setAuthMode('login'); setResetSent(false); }}
-                className="w-full py-2 text-primary font-bold text-sm hover:underline"
+                className="w-full text-slate-500 font-bold text-sm hover:text-white transition-colors"
               >
                 Ku laabo Login
               </button>
             </form>
           ) : (
             <>
-              <form onSubmit={authMode === 'login' ? handleManualLogin : handleManualSignup} className="w-full space-y-4">
+              <form onSubmit={authMode === 'login' ? handleManualLogin : handleManualSignup} className="space-y-5">
                 {authMode === 'signup' && (
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Magaca (Username)</label>
-                    <div className="relative">
-                      <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                      <input 
-                        type="text" 
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        placeholder="Geli magacaaga"
-                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
-                        required
-                      />
-                    </div>
-                  </div>
-                )}
-                
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">Email</label>
-                  <div className="relative">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Magacaaga</label>
                     <input 
-                      type="email" 
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="tusaale@gmail.com"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
+                      type="text" 
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-[1.5rem] text-white focus:border-primary focus:ring-0 transition-all font-bold placeholder:text-slate-700 shadow-inner" 
+                      placeholder="Dahir Ali"
                       required
                     />
                   </div>
+                )}
+                
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Email-kaaga</label>
+                  <input 
+                    type="email" 
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-[1.5rem] text-white focus:border-primary focus:ring-0 transition-all font-bold placeholder:text-slate-700 shadow-inner" 
+                    placeholder="tusaale@gmail.com"
+                    required
+                  />
                 </div>
 
-                <div className="space-y-1.5">
-                  <div className="flex justify-between items-center">
-                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Password</label>
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center px-4">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Password-kaaga</label>
                     {authMode === 'login' && (
                       <button 
                         type="button"
                         onClick={() => setAuthMode('forgot')}
-                        className="text-[10px] font-bold text-primary hover:underline"
+                        className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline"
                       >
                         Ma ilowday?
                       </button>
                     )}
                   </div>
-                  <div className="relative">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input 
-                      type="password" 
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
-                      required
-                      minLength={6}
-                    />
-                  </div>
+                  <input 
+                    type="password" 
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-[1.5rem] text-white focus:border-primary focus:ring-0 transition-all font-bold placeholder:text-slate-700 shadow-inner" 
+                    placeholder="••••••••"
+                    required
+                  />
                 </div>
 
                 <button 
                   type="submit"
-                  disabled={isAuthLoading || authLoading}
-                  className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all shadow-lg"
+                  disabled={isAuthLoading}
+                  className="w-full py-5 bg-primary hover:bg-primary-dark disabled:bg-slate-700 text-black rounded-[1.5rem] font-black uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(0,255,120,0.2)]"
                 >
-                  {isAuthLoading ? 'Loading...' : (authMode === 'login' ? 'Soo Gal' : 'Abuur Account')}
+                  {isAuthLoading ? 'Waa la shaqaynayaa...' : (authMode === 'login' ? 'Soo Gal' : 'Abuur Account')}
                 </button>
               </form>
 
-              <div className="w-full flex items-center gap-4 my-6">
-                <div className="flex-1 h-px bg-slate-100" />
-                <span className="text-xs font-bold text-slate-400 uppercase">Ama</span>
-                <div className="flex-1 h-px bg-slate-100" />
+              <div className="relative my-10 w-full">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-white/5"></div>
+                </div>
+                <div className="relative flex justify-center text-xs">
+                  <span className="px-6 bg-[#161a22] text-[10px] font-black text-slate-500 uppercase tracking-widest">Ama ku raaxayso</span>
+                </div>
               </div>
 
-              <div className="w-full grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-4 w-full">
                 <button 
                   onClick={() => handleSocialLogin('google')}
-                  className="flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 hover:border-primary text-secondary rounded-xl text-xs font-bold transition-all"
+                  className="flex items-center justify-center gap-3 py-4 bg-white/5 border border-white/5 hover:bg-white/10 text-white rounded-[1.5rem] text-xs font-black uppercase tracking-widest transition-all"
                 >
-                  <img src="https://www.google.com/favicon.ico" alt="G" className="w-4 h-4" />
+                  <img src="https://www.svgrepo.com/show/475656/google-color.svg" className="w-4 h-4" alt="Google" />
                   Google
                 </button>
                 <button 
                   onClick={() => handleSocialLogin('github')}
-                  className="flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 hover:border-primary text-secondary rounded-xl text-xs font-bold transition-all"
+                  className="flex items-center justify-center gap-3 py-4 bg-white/5 border border-white/5 hover:bg-white/10 text-white rounded-[1.5rem] text-xs font-black uppercase tracking-widest transition-all"
                 >
-                  <Github className="w-4 h-4 text-slate-900" />
+                  <Github className="w-4 h-4" />
                   GitHub
                 </button>
               </div>
 
-              <div className="mt-8 text-center">
-                <p className="text-sm text-slate-500">
-                  {authMode === 'login' ? 'Account ma haysatid?' : 'Account horey ma u lahayd?'}
+              <div className="mt-12 text-center">
+                <p className="text-sm font-bold text-slate-500">
+                  {authMode === 'login' ? "Account ma haysatid?" : "Account horey ma u lahayd?"}
                   <button 
                     onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-                    className="ml-2 text-primary font-bold hover:underline"
+                    className="ml-3 text-primary font-black uppercase tracking-widest hover:underline"
                   >
                     {authMode === 'login' ? 'Is diiwaangeli' : 'Soo gal'}
                   </button>
@@ -1666,8 +1646,7 @@ const VerificationPrompt = () => {
 };
 
 const UserDashboard = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
-  const { user, userData, generations } = useAuth();
-
+  const { user, userData } = useAuth();
   if (!isOpen || !user) return null;
 
   return (
@@ -1677,50 +1656,54 @@ const UserDashboard = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-secondary/80 backdrop-blur-md"
+        className="absolute inset-0 bg-[#0b0d11]/80 backdrop-blur-xl"
       />
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        initial={{ opacity: 0, scale: 0.95, y: 40 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 20 }}
-        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden"
+        exit={{ opacity: 0, scale: 0.95, y: 40 }}
+        className="relative w-full max-w-2xl bg-[#161a22] rounded-[3rem] shadow-[0_40px_120px_rgba(0,0,0,0.8)] overflow-hidden border border-primary/20"
       >
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+        <div className="p-10 border-b border-white/5 flex justify-between items-center bg-white/5">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.1)]">
               <UserIcon className="w-6 h-6" />
             </div>
-            <h3 className="font-heading font-bold text-xl text-secondary">Dashboard-kaaga</h3>
+            <div>
+               <h3 className="font-heading font-black text-2xl text-white uppercase tracking-tighter">Profile-kaaga</h3>
+               <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Dashboard-ka Account-ka</p>
+            </div>
           </div>
-          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
-            <X className="w-5 h-5 text-slate-500" />
+          <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-full transition-all text-slate-400 hover:text-white">
+            <X className="w-6 h-6" />
           </button>
         </div>
 
-        <div className="p-8 space-y-8 max-h-[80vh] overflow-y-auto">
+        <div className="p-10 space-y-10 max-h-[70vh] overflow-y-auto custom-scrollbar">
           {/* Profile Header */}
-          <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+          <div className="flex flex-col sm:flex-row items-center gap-8 p-8 bg-white/5 rounded-[2.5rem] border border-white/5 relative overflow-hidden group">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-50" />
             <img 
-              src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'User'}&background=random`} 
-              className="w-20 h-20 rounded-2xl border-4 border-white shadow-xl"
+              src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'User'}&background=00ff78&color=000&bold=true`} 
+              className="w-24 h-24 rounded-3xl border-4 border-white/10 shadow-2xl relative z-10 transition-transform group-hover:scale-105"
               alt="Avatar"
             />
-            <div className="text-center sm:text-left space-y-1">
-              <h4 className="text-2xl font-bold text-secondary">{user.displayName || 'User'}</h4>
-              <p className="text-slate-500 flex items-center gap-2 justify-center sm:justify-start">
-                <Mail className="w-4 h-4" /> {user.email}
+            <div className="text-center sm:text-left space-y-3 relative z-10">
+              <h4 className="text-3xl font-black text-white tracking-tighter">{user.displayName || 'User'}</h4>
+              <p className="text-slate-500 flex items-center gap-2 justify-center sm:justify-start font-bold text-sm">
+                <Mail className="w-4 h-4 text-primary" /> {user.email}
               </p>
-              <div className="flex gap-2 pt-2 justify-center sm:justify-start">
-                <span className="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
-                  {userData?.tier || 'Free'} Plan
+              <div className="flex gap-3 pt-2 justify-center sm:justify-start">
+                <span className="px-4 py-1.5 bg-primary text-black text-[10px] font-black rounded-full uppercase tracking-[0.2em]">
+                  Unlimited Member
                 </span>
                 {user.emailVerified ? (
-                  <span className="px-3 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
-                    <CheckCircle2 className="w-3 h-3" /> Verified
+                  <span className="px-4 py-1.5 bg-green-500/10 text-green-500 text-[10px] font-black rounded-full uppercase tracking-[0.2em] border border-green-500/20 flex items-center gap-1.5">
+                    <CheckCircle2 className="w-3.5 h-3.5" /> Xaqiijisan
                   </span>
                 ) : (
-                   <span className="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full uppercase tracking-wider">
-                    Unverified
+                   <span className="px-4 py-1.5 bg-amber-500/10 text-amber-500 text-[10px] font-black rounded-full uppercase tracking-[0.2em] border border-amber-500/20">
+                    Aan Xaqiijisnayn
                   </span>
                 )}
               </div>
@@ -1728,29 +1711,27 @@ const UserDashboard = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="p-4 bg-white border border-slate-100 shadow-sm rounded-2xl flex flex-col items-center text-center">
-              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-3">
-                <RefreshCw className="w-6 h-6" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div className="p-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center text-center group hover:border-primary/20 transition-all">
+              <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.05)]">
+                <Zap className="w-7 h-7" />
               </div>
-              <div className="text-2xl font-bold text-secondary">{userData?.totalUsage || 0}</div>
-              <div className="text-[10px] font-bold text-slate-400 uppercase">Wadarta Isticmaalka</div>
+              <div className="text-4xl font-black text-white tracking-tighter mb-1">{userData?.totalUsage || 0}</div>
+              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Wadarta Isticmaalka</div>
             </div>
-            <div className="p-4 bg-white border border-slate-100 shadow-sm rounded-2xl flex flex-col items-center text-center">
-              <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-3">
-                <Shield className="w-6 h-6" />
+            <div className="p-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center text-center group hover:border-primary/20 transition-all">
+              <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.05)]">
+                <Shield className="w-7 h-7" />
               </div>
-              <div className="text-xs font-bold text-secondary">Unlimited Access</div>
-              <div className="text-[10px] font-bold text-slate-400 uppercase">Bilaash Ah</div>
+              <div className="text-xl font-black text-white uppercase tracking-widest mb-1 italic">Noloshaada</div>
+              <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Bilaash Ah</div>
             </div>
           </div>
-
-          {/* Recent Generations Removed */}
         </div>
 
-        <div className="p-6 bg-slate-50 border-t border-slate-100 text-center">
-           <p className="text-slate-500 font-bold text-sm">
-             Ku raaxayso agabka AI-ga oo bilaash ah!
+        <div className="p-10 bg-white/5 border-t border-white/5 text-center">
+           <p className="text-primary font-black text-xs uppercase tracking-[0.4em] animate-pulse">
+             Powered by Dualeaditools AI
            </p>
         </div>
       </motion.div>
@@ -1770,10 +1751,10 @@ export default function App() {
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
 
   const faqs = [
-    { q: "Miyaan isticmaali karaa qalabkan si lacag la'aan ah?", a: "Haa, Dualeabditools waxay bixisaa 5 Credits oo bilaash ah maalin kasta oo aad ku isticmaali karto agabka AI-ga." },
-    { q: "Sideen u heli karaa Credits dheeraad ah?", a: "Waxaad u baahan tay inaad gasho (Login) si aad u hesho 5 credits ee bilaashka ah. Haddii aad u baahan tahay in kabadan, waxaad iska diiwaangelin kartaa qorshayaasha Pro ama Max." },
+    { q: "Miyaan isticmaali karaa qalabkan si lacag la'aan ah?", a: "Haa, dhammaan agabka Dualeaditools waa 100% bilaash. Ma jirto qidmad ama lacag qarsoon." },
+    { q: "Sideen u bilaabi karaa isticmaalka?", a: "Kaliya is-diiwaangeli si aad u abuurto account, waxaadna heli doontaa fursad aad ku isticmaasho dhammaan AI tools-ka adigoon wax xadidaad ah lahayn." },
     { q: "Xogtaydu miyay ammaan tahay?", a: "Xaqiiqdii. Wax walba waxaan ku dhex shaqaynaa browser-kaaga ama si ammaan ah ayaan API ugu dirnaa, marnaba ma kaydinno faylashaada ama qoraalkaaga." },
-    { q: "Ma u baahanahay inaan account furtay?", a: "Haa, si aad u isticmaasho agabka AI-ga (sida sawir u beddel qoraal), waxaad u baahan tay inaad ku soo gasho account-kaaga." }
+    { q: "Ma u baahanahay inaan account furtay?", a: "Haa, si aad u isticmaasho agabka AI-ga qaarkood, waxaad u baahan tay inaad ku soo gasho account-kaaga si aan u hubino nidaamka shaqada." }
   ];
 
   const openAuth = (mode: 'login' | 'signup' = 'login') => {
@@ -1797,70 +1778,63 @@ export default function App() {
       )}
 
       {/* Navbar */}
-      <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
+      <nav className="sticky top-0 z-40 bg-[#0b0d11]/80 backdrop-blur-xl border-b border-white/5">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <Coins className="w-5 h-5 text-white" />
+          <div className="flex justify-between items-center h-20">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
+                <FileText className="w-6 h-6 text-primary" />
               </div>
-              <span className="font-heading font-bold text-xl tracking-tight text-secondary">Dualeabditools</span>
+              <span className="font-heading font-black text-2xl tracking-tighter text-white">Dualeaditools</span>
             </div>
             
             {/* Desktop Menu */}
-            <div className="hidden md:flex items-center space-x-6">
-              <a href="#home" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Home</a>
-              <a href="#tools" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Tools</a>
-              
-              {!user && (
-                <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
-                  <Shield className="w-3.5 h-3.5 text-green-600" />
-                  <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">
-                    Free Access
-                  </span>
-                </div>
-              )}
+            <div className="hidden md:flex items-center space-x-10">
+              <a href="#home" className="text-sm font-bold text-slate-400 hover:text-primary transition-colors">Home</a>
+              <a href="#how-it-works" className="text-sm font-bold text-slate-400 hover:text-primary transition-colors">How It Works</a>
+              <a href="#tools" className="text-sm font-bold text-slate-400 hover:text-primary transition-colors">Tools</a>
+              <a href="#faq" className="text-sm font-bold text-slate-400 hover:text-primary transition-colors">FAQ</a>
+            </div>
 
+            <div className="hidden md:flex items-center gap-6">
               {user ? (
                 <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
-                    <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
-                    <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">
-                      PRO FREE
+                  <button 
+                    onClick={() => setIsDashboardOpen(true)}
+                    className="flex items-center gap-3 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl transition-all"
+                  >
+                    <img 
+                      src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'User'}&background=random`} 
+                      alt={user.displayName || ''} 
+                      className="w-8 h-8 rounded-full border border-primary/20"
+                    />
+                    <span className="text-sm font-bold text-white truncate max-w-[100px]">
+                      {user.displayName?.split(' ')[0]}
                     </span>
-                  </div>
-                  <div className="flex items-center gap-2 pl-4 border-l border-slate-200">
-                    <button 
-                      onClick={() => setIsDashboardOpen(true)}
-                      className="flex items-center gap-2 hover:opacity-80 transition-opacity"
-                    >
-                      <img 
-                        src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'User'}&background=random`} 
-                        alt={user.displayName || ''} 
-                        className="w-8 h-8 rounded-full border border-primary/20"
-                      />
-                      <span className="text-sm font-bold text-secondary hidden lg:inline-block truncate max-w-[100px]">
-                        {user.displayName?.split(' ')[0]}
-                      </span>
-                    </button>
-                    <button 
-                      onClick={handleLogout}
-                      className="p-2 text-slate-400 hover:text-rose-500 transition-colors"
-                      title="Logout"
-                    >
-                      <LogOut className="w-4 h-4" />
-                    </button>
-                  </div>
+                  </button>
+                  <button 
+                    onClick={handleLogout}
+                    className="p-2 text-slate-400 hover:text-rose-500 transition-colors bg-white/5 rounded-full"
+                    title="Logout"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
                 </div>
               ) : (
-                <button 
-                  onClick={() => openAuth('login')}
-                  disabled={authLoading}
-                  className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-primary/20 active:scale-95"
-                >
-                  <LogIn className="w-4 h-4" />
-                  <span>Ku Soo Gal</span>
-                </button>
+                <div className="flex items-center gap-4">
+                  <button 
+                    onClick={() => openAuth('login')}
+                    className="text-sm font-bold text-white hover:text-primary transition-colors"
+                  >
+                    Sign In
+                  </button>
+                  <button 
+                    onClick={() => openAuth('signup')}
+                    className="px-6 py-2.5 bg-primary hover:bg-primary-dark text-black rounded-xl text-sm font-black transition-all shadow-[0_0_20px_rgba(0,255,120,0.3)] active:scale-95"
+                  >
+                    Get Started
+                  </button>
+                </div>
               )}
             </div>
 
@@ -1876,99 +1850,240 @@ export default function App() {
         {/* Mobile Menu */}
         <AnimatePresence>
           {mobileMenuOpen && (
-            <motion.div 
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              className="md:hidden bg-white border-b border-slate-200 overflow-hidden"
-            >
-              <div className="px-4 pt-2 pb-4 space-y-1">
-                <a href="#home" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Home</a>
-                <a href="#tools" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Tools</a>
-                {user ? (
-                  <div className="px-3 py-2 flex items-center justify-between border-t border-slate-100">
-                    <span className="text-green-600 font-bold text-xs uppercase">Unlimited Free</span>
-                    <button onClick={handleLogout} className="text-rose-500 font-medium text-sm">Logout</button>
-                  </div>
-                ) : (
-                  <button onClick={() => openAuth('login')} className="w-full text-left px-3 py-2 text-primary font-medium">Login</button>
-                )}
-              </div>
-            </motion.div>
+              <motion.div 
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+                exit={{ height: 0, opacity: 0 }}
+                className="md:hidden bg-[#161a22] border-b border-white/5 overflow-hidden"
+              >
+                <div className="px-4 pt-2 pb-6 space-y-1">
+                  <a href="#home" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-2xl text-base font-black text-slate-400 hover:text-primary hover:bg-white/5 uppercase tracking-widest transition-all">Home</a>
+                  <a href="#tools" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-2xl text-base font-black text-slate-400 hover:text-primary hover:bg-white/5 uppercase tracking-widest transition-all">Tools</a>
+                  {user ? (
+                    <div className="px-4 py-3 flex items-center justify-between border-t border-white/5 mt-4 pt-4">
+                      <span className="text-primary font-black text-xs uppercase tracking-widest">Unlimited Free</span>
+                      <button onClick={handleLogout} className="text-rose-500 font-bold text-sm">Logout</button>
+                    </div>
+                  ) : (
+                    <button onClick={() => openAuth('login')} className="w-full text-left px-4 py-3 text-primary font-black uppercase tracking-widest">Login</button>
+                  )}
+                </div>
+              </motion.div>
           )}
         </AnimatePresence>
       </nav>
 
       <main className="flex-grow">
         {/* Hero Section */}
-        <section id="home" className="relative pt-20 pb-24 lg:pt-32 lg:pb-40 overflow-hidden">
-          <div className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary-light via-white to-white opacity-50"></div>
+        <section id="home" className="relative pt-16 pb-24 lg:pt-32 lg:pb-48 overflow-hidden">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+              
+              {/* Left Column Content */}
+              <motion.div
+                initial={{ opacity: 0, x: -30 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.8 }}
+                className="text-left"
+              >
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-2xl mb-8">
+                  <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+                  <span className="text-xs font-black text-primary uppercase tracking-[0.2em]">Next-Gen AI Platform</span>
+                </div>
+
+                <h1 className="font-heading text-6xl sm:text-7xl font-black text-white leading-[1.05] tracking-tighter mb-8">
+                  Let AI Create <br />
+                  Content <span className="text-primary scribble">20X Faster</span>
+                </h1>
+                
+                <p className="text-lg sm:text-xl text-slate-400 mb-10 leading-relaxed max-w-lg">
+                  Generate copy on-the-spot & create engaging content 20X faster. Save energy and hours of time with Dualeaditools.
+                </p>
+
+                <div className="flex flex-col sm:flex-row gap-5 mb-16">
+                  <button 
+                    onClick={() => openAuth('signup')}
+                    className="inline-flex items-center justify-center gap-3 px-10 py-5 text-base font-black text-black bg-primary hover:bg-[#00e069] rounded-[2rem] transition-all shadow-[0_20px_40px_rgba(0,255,120,0.2)] active:scale-95"
+                  >
+                    Get Started Free <ArrowRight className="w-5 h-5" />
+                  </button>
+                  <a href="#how-it-works" className="inline-flex items-center justify-center gap-3 px-10 py-5 text-base font-black text-white bg-white/5 border border-white/10 hover:bg-white/10 rounded-[2rem] transition-all">
+                    Book A Demo
+                  </a>
+                </div>
+
+                {/* Stats */}
+                <div className="flex items-center gap-10">
+                  <div className="space-y-1">
+                    <div className="text-3xl font-black text-white tracking-tighter">12,000+</div>
+                    <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Current Users</div>
+                  </div>
+                  <div className="w-px h-10 bg-white/10" />
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                       <Star className="w-5 h-5 text-primary fill-primary" />
+                       <div className="text-3xl font-black text-white tracking-tighter">99%</div>
+                    </div>
+                    <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Satisfaction Rate</div>
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Right Column - Dashboard Preview Mockup */}
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
+                animate={{ opacity: 1, scale: 1, rotate: 0 }}
+                transition={{ duration: 1.2, ease: "easeOut" }}
+                className="relative"
+              >
+                {/* Floating Elements */}
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-[100px] -z-10" />
+                <div className="absolute -bottom-20 -left-10 w-60 h-60 bg-blue-500/20 rounded-full blur-[120px] -z-10" />
+
+                <div className="relative bg-[#161a22] rounded-[2.5rem] p-3 shadow-2xl border border-primary/20 overflow-hidden group">
+                   <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors" />
+                  <div className="bg-[#0b0d11] rounded-[2rem] overflow-hidden shadow-inner relative z-10 border border-white/5">
+                    <div className="p-10 space-y-10">
+                      {/* Dashboard Header Mockup */}
+                      <div className="flex justify-between items-center">
+                        <div className="space-y-2">
+                          <h4 className="text-white font-black text-2xl tracking-tight uppercase tracking-widest">Hi creator!</h4>
+                          <p className="text-slate-500 text-sm font-bold">Select a tool to begin.</p>
+                        </div>
+                        <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-primary/20 bg-primary/5 flex items-center justify-center">
+                          <UserIcon className="w-6 h-6 text-primary" />
+                        </div>
+                      </div>
+
+                      {/* Tool Categories Mockup */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="p-6 bg-white/5 rounded-3xl border border-primary/20 flex flex-col items-center text-center group/card transition-all">
+                          <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
+                            <Type className="w-6 h-6 text-primary" />
+                          </div>
+                          <span className="font-black text-white text-[10px] uppercase tracking-widest">Writing</span>
+                        </div>
+                        <div className="p-6 bg-white/5 rounded-3xl border border-primary/20 flex flex-col items-center text-center transition-all">
+                          <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
+                            <Palette className="w-6 h-6 text-primary" />
+                          </div>
+                          <span className="font-black text-white text-[10px] uppercase tracking-widest">Design</span>
+                        </div>
+                      </div>
+
+                      {/* Processing Bar Mockup */}
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-end">
+                           <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest animate-pulse">Processing...</span>
+                           <span className="text-[10px] font-black text-primary uppercase tracking-widest">34%</span>
+                        </div>
+                        <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
+                          <div className="w-[34%] h-full bg-primary rounded-full shadow-[0_0_15px_rgba(0,255,120,0.8)]" />
+                        </div>
+                      </div>
+
+                      {/* Steps List Mockup */}
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-[0_0_10px_rgba(0,255,120,0.4)]">
+                            <CheckCircle2 className="w-3 h-3 text-black" />
+                          </div>
+                          <span className="text-[10px] font-black text-primary uppercase tracking-widest">Completed</span>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          <div className="w-5 h-5 rounded-full border-2 border-primary/40 animate-pulse" />
+                          <span className="text-[10px] font-black text-white uppercase tracking-widest">Active</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Floating "AI MAGIC" Pill */}
+                <motion.div 
+                  animate={{ y: [0, -10, 0] }}
+                  transition={{ duration: 4, repeat: Infinity }}
+                  className="absolute -top-6 -left-6 px-5 py-2 bg-black border border-white/10 rounded-full shadow-2xl z-20 flex items-center gap-2"
+                >
+                  <Zap className="w-4 h-4 text-primary" />
+                  <span className="text-[10px] font-black text-white uppercase tracking-widest">AI MAGIC ENABLED</span>
+                </motion.div>
+              </motion.div>
+            </div>
+          </div>
+        </section>
+
+        {/* Trusted By Section (Logo Cloud) */}
+        <section className="py-20 border-t border-white/5 bg-[#0b0d11]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
-            >
-              <h1 className="font-heading text-4xl sm:text-5xl lg:text-6xl font-extrabold text-secondary tracking-tight mb-6">
-                Habka ugu fudud ee <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">Shaqadaada AI</span>
-              </h1>
-              <p className="max-w-2xl mx-auto text-lg sm:text-xl text-slate-600 mb-10">
-                Dualeabditools waa meesha aad ka helayso agabka ugu fiican ee affiliate marketing-ka. Soo saar qoraal, diyaari cover, oo ku fududee shaqadaada AI.
-              </p>
-              <div className="flex flex-col sm:flex-row justify-center gap-4">
-                <a href="#tools" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-medium text-white bg-primary hover:bg-primary-dark rounded-xl transition-all shadow-md hover:shadow-lg">
-                  Bilaaw hadda <ArrowRight className="w-4 h-4" />
-                </a>
-                <a href="#features" className="inline-flex items-center justify-center gap-2 px-8 py-3.5 text-base font-medium text-secondary bg-white border border-slate-200 hover:bg-slate-50 rounded-xl transition-all shadow-sm hover:shadow-md">
-                  Wax badan ka baro
-                </a>
-              </div>
-            </motion.div>
+             <p className="text-sm font-black text-slate-500 uppercase tracking-[0.2em] mb-12">Trusted & Rated By 1,000+ Teams Globally</p>
+             <div className="flex flex-wrap justify-center items-center gap-x-16 gap-y-10 opacity-50 contrast-0 invert">
+                <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold">S</div>
+                   <span className="font-heading font-black text-xl tracking-tight text-white">SchedulePress</span>
+                </div>
+                <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white font-bold">T</div>
+                   <span className="font-heading font-black text-xl tracking-tight text-white">templately</span>
+                </div>
+                <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white font-bold">E</div>
+                   <span className="font-heading font-black text-xl tracking-tight text-white">easy.jobs</span>
+                </div>
+                <div className="flex items-center gap-2">
+                   <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center text-white font-bold">N</div>
+                   <span className="font-heading font-black text-xl tracking-tight text-white">NotificationX</span>
+                </div>
+             </div>
           </div>
         </section>
 
         {/* Tools Showcase */}
-        <section id="tools" className="py-20 bg-slate-50 border-y border-slate-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="font-heading text-3xl font-bold text-secondary mb-4">Agab xooggan oo farahaaga ku jira</h2>
-              <p className="text-slate-600 max-w-2xl mx-auto">Guji qalab kasta oo hoos ku yaal si aad isla markiiba u isticmaasho. Wax is-diiwaangalin ah looma baahna.</p>
+        <section id="tools" className="py-32 relative">
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0b0d11] via-[#161a22] to-[#0b0d11]" />
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="text-center mb-24">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-2xl mb-6">
+                <span className="text-xs font-black text-primary uppercase tracking-[0.2em]">POWERFUL TOOLS</span>
+              </div>
+              <h2 className="font-heading text-4xl sm:text-5xl font-black text-white mb-6">Agab xooggan oo farahaaga ku jira</h2>
+              <p className="text-slate-400 max-w-xl mx-auto font-medium">Guji qalab kasta oo hoos ku yaal si aad isla markiiba u isticmaasho. Shaqadaada ku fududee agabka AI-ga ugu casrisan.</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-16 mt-20">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
               {tools.map((tool, index) => {
                 const colorMap = {
-                  orange: {
-                    gradient: 'from-[#ff8c42] to-[#ff3c38]',
-                    shadow: 'shadow-orange-500/20',
-                    border: 'border-orange-500/20',
-                    text: 'text-[#ff6b35]',
-                    bg: 'bg-orange-50',
-                    glow: 'shadow-[0_0_20px_rgba(255,107,53,0.3)]'
+                   orange: {
+                    gradient: 'from-primary/40 to-primary/10',
+                    shadow: 'shadow-primary/20',
+                    border: 'border-primary/30',
+                    text: 'text-primary',
+                    bg: 'bg-primary/5',
+                    glow: 'shadow-[0_0_40px_rgba(0,255,120,0.15)]'
                   },
                   pink: {
-                    gradient: 'from-[#ff006e] to-[#fb5607]',
-                    shadow: 'shadow-pink-500/20',
-                    border: 'border-pink-500/20',
-                    text: 'text-[#ff006e]',
-                    bg: 'bg-pink-50',
-                    glow: 'shadow-[0_0_20px_rgba(255,0,110,0.3)]'
+                    gradient: 'from-primary/40 to-primary/10',
+                    shadow: 'shadow-primary/20',
+                    border: 'border-primary/30',
+                    text: 'text-primary',
+                    bg: 'bg-primary/5',
+                    glow: 'shadow-[0_0_40px_rgba(0,255,120,0.15)]'
                   },
                   amber: {
-                    gradient: 'from-[#ffbe0b] to-[#fb5607]',
-                    shadow: 'shadow-amber-500/20',
-                    border: 'border-amber-500/20',
-                    text: 'text-[#fb8500]',
-                    bg: 'bg-amber-50',
-                    glow: 'shadow-[0_0_20px_rgba(251,133,0,0.3)]'
+                    gradient: 'from-primary/40 to-primary/10',
+                    shadow: 'shadow-primary/20',
+                    border: 'border-primary/30',
+                    text: 'text-primary',
+                    bg: 'bg-primary/5',
+                    glow: 'shadow-[0_0_40px_rgba(0,255,120,0.15)]'
                   },
                   purple: {
-                    gradient: 'from-[#8338ec] to-[#3a86ff]',
-                    shadow: 'shadow-purple-500/20',
-                    border: 'border-purple-500/20',
-                    text: 'text-[#8338ec]',
-                    bg: 'bg-indigo-50',
-                    glow: 'shadow-[0_0_20px_rgba(131,56,236,0.3)]'
+                    gradient: 'from-primary/40 to-primary/10',
+                    shadow: 'shadow-primary/20',
+                    border: 'border-primary/30',
+                    text: 'text-primary',
+                    bg: 'bg-primary/5',
+                    glow: 'shadow-[0_0_40px_rgba(0,255,120,0.15)]'
                   }
                 };
                 
@@ -1978,50 +2093,44 @@ export default function App() {
                 return (
                   <motion.div
                     key={tool.id}
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    whileInView={{ opacity: 1, scale: 1 }}
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: index * 0.1 }}
                     onClick={() => setActiveTool(tool)}
-                    className="group relative cursor-pointer pt-10"
+                    className="group relative cursor-pointer pt-12"
                   >
-                    {/* The Shield/Card */}
-                    <div className="relative bg-white rounded-[2.5rem] p-8 pt-16 shadow-2xl border-b-[8px] border-slate-100 group-hover:border-primary/30 transition-all duration-300 min-h-[340px] flex flex-col items-center">
+                    <div className="relative bg-[#161a22] rounded-[2.5rem] p-10 pt-16 shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-primary/10 group-hover:border-primary/60 transition-all duration-500 min-h-[380px] flex flex-col items-center">
                       
-                      {/* Floating Icon Header - Centered and Larger like a true infographic icon */}
-                      <div className={`absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 rounded-3xl bg-gradient-to-br ${theme.gradient} flex items-center justify-center p-0.5 ${theme.glow} group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300 z-10 shadow-2xl`}>
-                        <div className="w-full h-full rounded-[1.4rem] bg-white/20 backdrop-blur-md flex items-center justify-center">
-                          <tool.icon className="w-12 h-12 text-white drop-shadow-lg" />
+                      {/* Floating Step Badge */}
+                      <div className={`absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 rounded-[2rem] bg-gradient-to-br ${theme.gradient} flex items-center justify-center p-0.5 ${theme.glow} group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500 z-10 shadow-2xl border border-primary/20`}>
+                        <div className="w-full h-full rounded-[1.8rem] bg-black/40 backdrop-blur-md flex items-center justify-center overflow-hidden relative">
+                           <div className="absolute inset-0 bg-gradient-to-tr from-white/10 to-transparent opacity-50" />
+                           <tool.icon className="w-12 h-12 text-primary drop-shadow-[0_0_20px_rgba(0,255,120,0.5)] relative z-10" />
                         </div>
                       </div>
 
-                      {/* Step Number - Moved to top right background */}
-                      <div className="absolute top-4 right-6 opacity-10 select-none">
-                        <div className={`text-6xl font-black ${theme.text} leading-none tracking-tighter italic`}>
+                      <div className="absolute top-6 right-8 opacity-20 select-none">
+                        <div className={`text-6xl font-black ${theme.text} leading-none tracking-tighter italic opacity-10`}>
                           {stepNum}
                         </div>
                       </div>
 
-                      {/* Content */}
-                      <div className="text-center space-y-4 flex-1 flex flex-col justify-center mt-4">
-                        <h3 className="text-slate-800 font-black text-xl leading-tight uppercase tracking-wider">
+                      <div className="text-center space-y-4 flex-1 flex flex-col justify-center mt-6">
+                        <h3 className="text-white font-black text-2xl leading-tight uppercase tracking-widest group-hover:text-primary transition-colors">
                           {tool.name}
                         </h3>
-                        <p className="text-slate-500 text-sm leading-relaxed font-medium">
+                        <p className="text-slate-400 text-sm leading-relaxed font-bold">
                           {tool.description}
                         </p>
                       </div>
 
-                      {/* Action Button */}
-                      <div className="mt-8">
-                        <div className={`px-8 py-3 rounded-2xl border-2 ${theme.border} ${theme.text} text-xs font-black uppercase tracking-[0.2em] group-hover:bg-primary group-hover:border-primary group-hover:text-white transition-all shadow-sm flex items-center gap-2`}>
-                          Bilaw <ArrowRight className="w-4 h-4" />
+                      <div className="mt-10">
+                        <div className={`px-10 py-4 rounded-[1.5rem] bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] group-hover:bg-primary group-hover:text-black group-hover:shadow-[0_0_30px_rgba(0,255,120,0.6)] transition-all flex items-center gap-3`}>
+                          Bilaw Tool <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
                     </div>
-
-                    {/* Background Decorative Shape like in the image */}
-                    <div className={`absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-r ${theme.gradient} rounded-b-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                   </motion.div>
                 );
               })}
@@ -2038,26 +2147,26 @@ export default function App() {
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="text-center p-6 hover:translate-y-[-5px] transition-transform duration-300">
-                <div className="w-16 h-16 bg-primary-light/50 text-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                  <Zap className="w-8 h-8" />
+              <div className="group text-center p-10 bg-[#161a22] rounded-[2.5rem] border border-white/5 hover:border-primary/30 transition-all duration-300">
+                <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-8 border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.1)] group-hover:scale-110 transition-transform">
+                  <Zap className="w-10 h-10" />
                 </div>
-                <h3 className="font-heading text-xl font-semibold mb-3">Xawaare Sare</h3>
-                <p className="text-slate-600">Agabka intooda badan waxay si toos ah ugu dhex shaqeeyaan browser-kaaga, iyagoo ku siinaya natiijooyin degdeg ah.</p>
+                <h3 className="font-heading text-2xl font-black text-white uppercase tracking-widest mb-4">Xawaare Sare</h3>
+                <p className="text-slate-400 font-bold text-sm leading-relaxed">Agabka intooda badan waxay si toos ah ugu dhex shaqeeyaan browser-kaaga, iyagoo ku siinaya natiijooyin degdeg ah.</p>
               </div>
-              <div className="text-center p-6 hover:translate-y-[-5px] transition-transform duration-300">
-                <div className="w-16 h-16 bg-secondary-light/20 text-secondary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                  <Shield className="w-8 h-8" />
+              <div className="group text-center p-10 bg-[#161a22] rounded-[2.5rem] border border-white/5 hover:border-primary/30 transition-all duration-300">
+                <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-8 border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.1)] group-hover:scale-110 transition-transform">
+                  <Shield className="w-10 h-10" />
                 </div>
-                <h3 className="font-heading text-xl font-semibold mb-3">Ammaanka Xogta</h3>
-                <p className="text-slate-600">Xogtaadu waa ammaan. Ma kaydinno qoraalkaaga ama faylashaada ka dib markaan dhammaystirno shaqada.</p>
+                <h3 className="font-heading text-2xl font-black text-white uppercase tracking-widest mb-4">Ammaanka Xogta</h3>
+                <p className="text-slate-400 font-bold text-sm leading-relaxed">Xogtaadu waa ammaan. Ma kaydinno qoraalkaaga ama faylashaada ka dib markaan dhammaystirno shaqada.</p>
               </div>
-              <div className="text-center p-6 hover:translate-y-[-5px] transition-transform duration-300">
-                <div className="w-16 h-16 bg-primary-light/50 text-primary-dark rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-sm">
-                  <Globe className="w-8 h-8" />
+              <div className="group text-center p-10 bg-[#161a22] rounded-[2.5rem] border border-white/5 hover:border-primary/30 transition-all duration-300">
+                <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-8 border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.1)] group-hover:scale-110 transition-transform">
+                  <Globe className="w-10 h-10" />
                 </div>
-                <h3 className="font-heading text-xl font-semibold mb-3">Meel walba laga heli karaa</h3>
-                <p className="text-slate-600">Wuxuu si fiican ugu shaqeeyaa computer-ka, tablet-ka, iyo mobile-ka. Looma baahna in la rakibo.</p>
+                <h3 className="font-heading text-2xl font-black text-white uppercase tracking-widest mb-4">Meel walba laga heli karaa</h3>
+                <p className="text-slate-400 font-bold text-sm leading-relaxed">Wuxuu si fiican ugu shaqeeyaa computer-ka, tablet-ka, iyo mobile-ka. Looma baahna in la rakibo.</p>
               </div>
             </div>
           </div>
@@ -2104,15 +2213,15 @@ export default function App() {
               <h2 className="font-heading text-3xl font-bold text-secondary mb-4">Su'aalaha Inta badan la isweydiiyo</h2>
             </div>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
               {faqs.map((faq, index) => (
-                <div key={index} className="border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                <div key={index} className="border border-white/5 rounded-[2rem] overflow-hidden shadow-2xl bg-[#161a22]">
                   <button 
-                    className="w-full px-6 py-4 text-left flex justify-between items-center bg-white hover:bg-slate-50 transition-colors"
+                    className="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-white/5 transition-all group"
                     onClick={() => setActiveFaq(activeFaq === index ? null : index)}
                   >
-                    <span className="font-medium text-secondary">{faq.q}</span>
-                    {activeFaq === index ? <ChevronUp className="w-5 h-5 text-primary" /> : <ChevronDown className="w-5 h-5 text-slate-500" />}
+                    <span className="font-black text-white uppercase tracking-widest text-sm group-hover:text-primary transition-colors">{faq.q}</span>
+                    {activeFaq === index ? <ChevronUp className="w-6 h-6 text-primary" /> : <ChevronDown className="w-6 h-6 text-slate-500" />}
                   </button>
                   <AnimatePresence>
                     {activeFaq === index && (
@@ -2121,7 +2230,7 @@ export default function App() {
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                       >
-                        <div className="px-6 pb-4 pt-2 text-slate-600 bg-white">
+                        <div className="px-8 pb-8 pt-2 text-slate-400 font-bold bg-[#161a22] border-t border-white/5 leading-relaxed">
                           {faq.a}
                         </div>
                       </motion.div>
@@ -2135,22 +2244,53 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-slate-50 border-t border-slate-200 py-12">
+      <footer className="bg-secondary border-t border-white/5 py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex items-center gap-2">
-              <div className="w-6 h-6 bg-primary rounded flex items-center justify-center">
-                <Coins className="w-3 h-3 text-white" />
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
+            <div className="col-span-1 md:col-span-1 space-y-6">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-black">
+                  <FileText className="w-5 h-5" />
+                </div>
+                <span className="font-heading font-black text-xl text-white">Dualeaditools</span>
               </div>
-              <span className="font-heading font-bold text-lg text-secondary">Dualeabditools</span>
+              <p className="text-slate-500 text-sm leading-relaxed">
+                Empowering content creators and affiliate marketers with high-performance AI tools.
+              </p>
             </div>
-            <div className="flex gap-6 text-sm font-medium text-slate-500">
-              <a href="#" className="hover:text-primary transition-colors">Privacy Policy</a>
-              <a href="#" className="hover:text-primary transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-primary transition-colors">Contact</a>
+            <div>
+              <h4 className="text-white font-black text-sm uppercase tracking-widest mb-8">Platform</h4>
+              <ul className="space-y-4 text-slate-500 text-sm font-bold">
+                <li><a href="#tools" className="hover:text-primary transition-colors">AI Tools</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Pricing</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">API Docs</a></li>
+              </ul>
             </div>
-            <div className="text-sm text-slate-500 font-medium">
-              &copy; {new Date().getFullYear()} Dualeabditools. Xuquuqda way dhowran tahay.
+            <div>
+              <h4 className="text-white font-black text-sm uppercase tracking-widest mb-8">Company</h4>
+              <ul className="space-y-4 text-slate-500 text-sm font-bold">
+                <li><a href="#" className="hover:text-primary transition-colors">About Us</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Careers</a></li>
+              </ul>
+            </div>
+            <div>
+              <h4 className="text-white font-black text-sm uppercase tracking-widest mb-8">Support</h4>
+              <ul className="space-y-4 text-slate-500 text-sm font-bold">
+                <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">Contact Us</a></li>
+                <li><a href="#" className="hover:text-primary transition-colors">System Status</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-10 border-t border-white/5">
+            <div className="text-sm text-slate-500 font-bold">
+              &copy; {new Date().getFullYear()} Dualeaditools. Built for performance.
+            </div>
+            <div className="flex gap-10 text-sm font-bold text-slate-500">
+              <a href="#" className="hover:text-primary transition-colors">Privacy</a>
+              <a href="#" className="hover:text-primary transition-colors">Terms</a>
+              <a href="#" className="hover:text-primary transition-colors">Cookies</a>
             </div>
           </div>
         </div>
@@ -2171,27 +2311,27 @@ export default function App() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-3xl bg-white rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
+              className="relative w-full max-w-3xl bg-[#0b0d11] rounded-[2.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col max-h-[90vh] border border-white/5"
             >
-              <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-100 bg-slate-50/50">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-primary-light/50 text-primary-dark rounded-lg flex items-center justify-center shadow-inner">
-                    <activeTool.icon className="w-5 h-5" />
+              <div className="flex items-center justify-between p-6 sm:p-10 border-b border-white/5 bg-[#161a22]">
+                <div className="flex items-center gap-6">
+                  <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.1)]">
+                    <activeTool.icon className="w-8 h-8" />
                   </div>
                   <div>
-                    <h2 className="font-heading text-xl font-bold text-secondary">{activeTool.name}</h2>
-                    <p className="text-sm text-slate-500 hidden sm:block">{activeTool.description}</p>
+                    <h2 className="font-heading text-2xl font-black text-white uppercase tracking-widest">{activeTool.name}</h2>
+                    <p className="text-sm text-slate-500 font-bold hidden sm:block mt-1">{activeTool.description}</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setActiveTool(null)}
-                  className="p-2 text-slate-400 hover:text-secondary hover:bg-slate-200 rounded-lg transition-colors shadow-sm"
+                  className="p-3 text-slate-500 hover:text-white hover:bg-white/5 rounded-full transition-all"
                 >
-                  <X className="w-6 h-6" />
+                  <X className="w-8 h-8" />
                 </button>
               </div>
               
-              <div className="p-4 sm:p-6 overflow-y-auto">
+              <div className="p-6 sm:p-10 overflow-y-auto custom-scrollbar bg-[#0b0d11]">
                 <activeTool.component />
               </div>
             </motion.div>
