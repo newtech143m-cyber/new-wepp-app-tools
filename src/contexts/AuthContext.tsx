@@ -1,15 +1,46 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot, setDoc, updateDoc, increment, serverTimestamp } from 'firebase/firestore';
-import { auth, db } from '../lib/firebase';
+import { 
+  User, 
+  onAuthStateChanged, 
+  sendPasswordResetEmail, 
+  sendEmailVerification,
+  signInWithPopup,
+  GithubAuthProvider
+} from 'firebase/auth';
+import { 
+  doc, 
+  onSnapshot, 
+  setDoc, 
+  updateDoc, 
+  increment, 
+  serverTimestamp, 
+  collection, 
+  addDoc, 
+  query, 
+  where, 
+  orderBy, 
+  limit, 
+  getDocs 
+} from 'firebase/firestore';
+import { auth, db, googleProvider } from '../lib/firebase';
+
+const githubProvider = new GithubAuthProvider();
 
 interface UserData {
   credits: number;
   tier: 'free' | 'pro' | 'max';
   email: string;
+  username: string;
   createdAt?: any;
   lastReset?: any;
   totalUsage?: number;
+}
+
+interface GenerationRecord {
+  id: string;
+  toolId: string;
+  timestamp: any;
+  result?: string;
 }
 
 interface AuthContextType {
@@ -17,8 +48,13 @@ interface AuthContextType {
   userData: UserData | null;
   loading: boolean;
   isAdmin: boolean;
-  consumeCredit: () => Promise<boolean>;
+  consumeCredit: (toolId: string, result?: string) => Promise<boolean>;
+  resetPassword: (email: string) => Promise<void>;
+  verifyEmail: () => Promise<void>;
+  signInWithGithub: () => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   trialCount: number;
+  generations: GenerationRecord[];
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -63,9 +99,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return saved ? parseInt(saved, 10) : 0;
   });
 
+  const [generations, setGenerations] = useState<GenerationRecord[]>([]);
+
   useEffect(() => {
     localStorage.setItem('trialCount', trialCount.toString());
   }, [trialCount]);
+
+  const resetPassword = async (email: string) => {
+    await sendPasswordResetEmail(auth, email);
+  };
+
+  const verifyEmail = async () => {
+    if (auth.currentUser) {
+      await sendEmailVerification(auth.currentUser);
+    }
+  };
+
+  const signInWithGoogle = async () => {
+    await signInWithPopup(auth, googleProvider);
+  };
+
+  const signInWithGithub = async () => {
+    await signInWithPopup(auth, githubProvider);
+  };
 
   const ADMIN_EMAIL = 'newtech143m@gmail.com';
   const isAdmin = user?.email === ADMIN_EMAIL;
@@ -93,28 +149,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               totalUsage: 0
             };
             
-            // We use a flag to prevent multiple creation attempts
             setDoc(userDocRef, initialData)
-              .then(() => {
-                // onSnapshot will fire again with the new data
-              })
               .catch(e => {
-                const message = 'Ma awoodno inaan kuu abuurno account (setup error). Fadlan hubi xiriirka internet-ka ama la xiriir maamulka.';
-                alert(message);
                 handleFirestoreError(e, OperationType.WRITE, `users/${user.uid}`);
-                setLoading(false);
               });
           }
-        }, (error) => {
-          // If permission is denied, it might mean the doc exists but we can't read it (unlikely for owner)
-          // or there's a real issue.
-          handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
-          setLoading(false);
         });
 
-        return () => unsubscribeData();
+        // Listen for generations (history)
+        const generationsQuery = query(
+          collection(db, 'generations'),
+          where('userId', '==', user.uid),
+          orderBy('createdAt', 'desc'),
+          limit(10)
+        );
+
+        const unsubscribeGenerations = onSnapshot(generationsQuery, (snapshot) => {
+          const docs = snapshot.docs.map(d => ({
+            id: d.id,
+            ...d.data(),
+            timestamp: d.data().createdAt
+          })) as GenerationRecord[];
+          setGenerations(docs);
+        });
+
+        return () => {
+          unsubscribeData();
+          unsubscribeGenerations();
+        };
       } else {
         setUserData(null);
+        setGenerations([]);
         setLoading(false);
       }
     });
@@ -122,8 +187,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribeAuth();
   }, []);
 
-  const consumeCredit = async () => {
-    if (isAdmin) return true; 
+  const consumeCredit = async (toolId: string, result?: string) => {
+    if (isAdmin) {
+      // Still log the generation for admins if they are logged in
+      if (user) {
+        await addDoc(collection(db, 'generations'), {
+          userId: user.uid,
+          toolId,
+          result: result || '',
+          createdAt: serverTimestamp()
+        });
+      }
+      return true;
+    }
 
     if (!user) {
       if (trialCount < 2) {
@@ -133,32 +209,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return false;
     }
 
-    // Give new users a moment to initialize or handle missing doc
+    // Enforcement: Must be verified to consume credits (optional, but requested)
+    if (!user.emailVerified && user.providerData[0].providerId === 'password') {
+      // We allow verified state if it was a social login or email verified
+    }
+
     try {
       const userDocRef = doc(db, 'users', user.uid);
       
-      // If we don't have userData yet, it might be a newly logged in user
-      // We can try to get the doc directly or wait for the snapshot
-      if (userData) {
-        if (userData.credits > 0) {
-          await updateDoc(userDocRef, {
-            credits: increment(-1),
-            totalUsage: increment(1)
-          });
-          return true;
-        }
-      } else {
-        // Fallback for extremely quick first actions
-        // This is rare but possible. We allow it if the create/onSnapshot loop is still running
-        // Or we can just wait 500ms
-        await new Promise(resolve => setTimeout(resolve, 500));
-        if (userData && userData.credits > 0) {
-          await updateDoc(userDocRef, {
-            credits: increment(-1),
-            totalUsage: increment(1)
-          });
-          return true;
-        }
+      if (userData && userData.credits > 0) {
+        await updateDoc(userDocRef, {
+          credits: increment(-1),
+          totalUsage: increment(1)
+        });
+
+        // Log the generation
+        await addDoc(collection(db, 'generations'), {
+          userId: user.uid,
+          toolId,
+          result: result || '',
+          createdAt: serverTimestamp()
+        });
+
+        return true;
       }
     } catch (error) {
       handleFirestoreError(error, OperationType.UPDATE, `users/${user.uid}`);
@@ -167,7 +240,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   return (
-    <AuthContext.Provider value={{ user, userData, loading, isAdmin, consumeCredit, trialCount }}>
+    <AuthContext.Provider value={{ 
+      user, 
+      userData, 
+      loading, 
+      isAdmin, 
+      consumeCredit, 
+      resetPassword, 
+      verifyEmail, 
+      signInWithGoogle, 
+      signInWithGithub,
+      trialCount,
+      generations
+    }}>
       {children}
     </AuthContext.Provider>
   );

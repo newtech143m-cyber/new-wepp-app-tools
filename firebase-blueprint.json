@@ -14,12 +14,28 @@
         "createdAt": { "type": "string", "format": "date-time" }
       },
       "required": ["email", "credits", "tier", "createdAt"]
+    },
+    "Generation": {
+      "title": "Generation",
+      "description": "Represents a single AI tool usage record.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "toolId": { "type": "string" },
+        "result": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "toolId", "createdAt"]
     }
   },
   "firestore": {
     "/users/{userId}": {
       "schema": "User",
       "description": "Individual user document."
+    },
+    "/generations/{genId}": {
+      "schema": "Generation",
+      "description": "Usage history records."
     }
   }
 }

@@ -35,7 +35,12 @@ import {
   LogOut,
   User as UserIcon,
   CreditCard,
-  Lock
+  Lock,
+  Github,
+  Mail,
+  RefreshCw,
+  Clock,
+  History
 } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import * as XLSX from 'xlsx';
@@ -185,13 +190,6 @@ const ImageToText = () => {
     
     setLoading(true);
     try {
-      const success = await consumeCredit();
-      if (!success) {
-        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
-        setLoading(false);
-        return;
-      }
-
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const base64Data = image.split(',')[1];
       const mimeType = image.split(';')[0].split(':')[1];
@@ -205,7 +203,16 @@ const ImageToText = () => {
           ]
         }
       });
-      setText(response.text || 'Qoraal lama helin.');
+      
+      const extractedText = response.text || 'Qoraal lama helin.';
+      
+      const success = await consumeCredit('image-to-text', extractedText.substring(0, 100));
+      if (!success) {
+        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
+        setLoading(false);
+        return;
+      }
+      setText(extractedText);
     } catch (error) {
       console.error(error);
       setText('Cillad ayaa dhacday markii la soo saarayay qoraalka. Fadlan mar kale isku day.');
@@ -300,12 +307,6 @@ const JpgToWord = () => {
 
     setLoading(true);
     try {
-      const success = await consumeCredit();
-      if (!success) {
-        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
-        setLoading(false);
-        return;
-      }
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       const base64Data = image.split(',')[1];
       const mimeType = image.split(';')[0].split(':')[1];
@@ -321,6 +322,13 @@ const JpgToWord = () => {
       });
       
       const text = response.text || 'No text found.';
+      
+      const success = await consumeCredit('jpg-to-word', 'Converted image to Word doc');
+      if (!success) {
+        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
+        setLoading(false);
+        return;
+      }
       
       // Create a simple blob that MS Word can open
       const blob = new Blob(['\ufeff', text], { type: 'application/msword' });
@@ -412,12 +420,6 @@ const TitleToImage = () => {
 
     setLoading(true);
     try {
-      const success = await consumeCredit();
-      if (!success) {
-        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
-        setLoading(false);
-        return;
-      }
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       
       const capitalizedTitle = title.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())));
@@ -459,6 +461,13 @@ const TitleToImage = () => {
           }
         }
       });
+
+      const success = await consumeCredit('blog-cover', `Generated blog cover: ${capitalizedTitle}`);
+      if (!success) {
+        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
+        setLoading(false);
+        return;
+      }
       
       for (const part of response.candidates?.[0]?.content?.parts || []) {
         if (part.inlineData) {
@@ -633,12 +642,6 @@ const BackgroundGenerator = () => {
   const generateBackground = async () => {
     setLoading(true);
     try {
-      const success = await consumeCredit();
-      if (!success) {
-        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
-        setLoading(false);
-        return;
-      }
       const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
       
       const response = await ai.models.generateContent({
@@ -660,6 +663,13 @@ const BackgroundGenerator = () => {
           }
         }
       });
+
+      const success = await consumeCredit('background-gen', `Generated ${bgStyle} background with ${colorTheme}`);
+      if (!success) {
+        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
+        setLoading(false);
+        return;
+      }
       
       for (const part of response.candidates?.[0]?.content?.parts || []) {
         if (part.inlineData) {
@@ -805,12 +815,6 @@ const PdfToExcelNames = () => {
       for (const { id, file } of files) {
         if (newData[id]) continue;
         
-        const success = await consumeCredit();
-        if (!success) {
-          alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
-          break;
-        }
-
         const reader = new FileReader();
         const loadPromise = new Promise<string>((resolve) => {
           reader.onload = () => resolve((reader.result as string).split(',')[1]);
@@ -833,6 +837,13 @@ const PdfToExcelNames = () => {
 
           const responseText = result.text || '';
           const names = responseText.split('\n').map(n => n.trim()).filter(n => n.length > 0);
+          
+          const success = await consumeCredit('pdf-to-names', `Extracted ${names.length} names from ${file.name}`);
+          if (!success) {
+            alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
+            break;
+          }
+
           newData[id] = names;
           setExtractedData(JSON.parse(JSON.stringify(newData))); 
         } catch (apiError: any) {
@@ -1120,20 +1131,22 @@ const tools = [
 ];
 
 // --- Auth Components ---
-const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean, onClose: () => void, initialMode?: 'login' | 'signup' }) => {
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>(initialMode);
+const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean, onClose: () => void, initialMode?: 'login' | 'signup' | 'forgot' }) => {
+  const [authMode, setAuthMode] = useState<'login' | 'signup' | 'forgot'>(initialMode);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [isAuthLoading, setIsAuthLoading] = useState(false);
-  const { loading: authLoading } = useAuth();
+  const [resetSent, setResetSent] = useState(false);
+  const { loading: authLoading, resetPassword, signInWithGoogle, signInWithGithub } = useAuth();
 
   const handleManualLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
     setIsAuthLoading(true);
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      const userCred = await signInWithEmailAndPassword(auth, email, password);
+      // Auto close after successful login
       onClose();
     } catch (error: any) {
       console.error('Email login error:', error);
@@ -1158,36 +1171,46 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean
     setIsAuthLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      // Wait for a small moment to ensure auth state is fully recognized before updating profile
       await new Promise(resolve => setTimeout(resolve, 500));
       await updateProfile(userCredential.user, { displayName: username });
+      // Redirect to verification prompt or handled by App state
       onClose();
     } catch (error: any) {
       console.error('Email signup error:', error);
       let message = 'Cillad ayaa dhacday markii aad is diiwaangelinaysay.';
       if (error.code === 'auth/email-already-in-use') message = 'Email-kan horey ayaa loo isticmaalay.';
       else if (error.code === 'auth/weak-password') message = 'Password-kaagu waa inuu ugu yaraan ka koobnaadaa 6 xaraf.';
-      else if (error.code === 'auth/operation-not-allowed') message = 'Nidaamka is-diiwaangelinta Email/Password laguma fasaxin Firebase Console-ka. Fadlan Google ku soo gal ama la xiriir maamulaha.';
+      else if (error.code === 'auth/operation-not-allowed') message = 'Nidaamka is-diiwaangelinta Email/Password laguma fasaxin Firebase Console-ka.';
       else if (error.code === 'auth/invalid-email') message = 'Email-ka aad gelisay ma saxna.';
-      else if (error.code === 'auth/network-request-failed') message = 'Cillad dhanka internet-ka ah. Fadlan xiriirkaaga hubi.';
       alert(message);
     } finally {
       setIsAuthLoading(false);
     }
   };
 
-  const handleGoogleLogin = async () => {
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) return;
+    setIsAuthLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      await resetPassword(email);
+      setResetSent(true);
+    } catch (error: any) {
+      alert('Cillad ayaa dhacday: ' + error.message);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleSocialLogin = async (provider: 'google' | 'github') => {
+    try {
+      if (provider === 'google') await signInWithGoogle();
+      else await signInWithGithub();
       onClose();
     } catch (error: any) {
-      console.error('Login error:', error);
-      if (error.code === 'auth/popup-blocked') {
-        alert('Popup-ka ayaa la xiray. Fadlan u oggolow browser-kaaga inuu furo popup-ka si aad u gasho.');
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        // User closed the popup
-      } else {
-        alert('Cillad ayaa dhacday markii la isku dayay in la is diiwaangeliyo. Fadlan hubi in internet-kaagu sax yahay ama mar kale isku day.');
+      console.error('Social login error:', error);
+      if (error.code !== 'auth/popup-closed-by-user') {
+        alert('Cillad ayaa dhacday markii la isku dayay in la is diiwaangeliyo.');
       }
     }
   };
@@ -1223,106 +1246,343 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean
           
           <div className="text-center mb-8">
             <h3 className="font-heading text-2xl font-bold text-secondary mb-2">
-              {authMode === 'login' ? 'Ku Soo Gal' : 'Is Diiwaangeli'}
+              {authMode === 'login' ? 'Ku Soo Gal' : authMode === 'signup' ? 'Is Diiwaangeli' : 'Reset Password'}
             </h3>
             <p className="text-slate-500 text-sm">
               {authMode === 'login' 
                 ? 'Geli xogtaada si aad u sii waddo isticmaalka agabka AI-ga.' 
-                : 'Abuur account cusub si aad u hesho 5 credits oo bilaash ah.'}
+                : authMode === 'signup' 
+                ? 'Abuur account cusub si aad u hesho 5 credits oo bilaash ah.'
+                : 'Geli email-kaaga si aad u hesho link-ga password-ka lagu beddelo.'}
             </p>
           </div>
 
-          <form onSubmit={authMode === 'login' ? handleManualLogin : handleManualSignup} className="w-full space-y-4">
-            {authMode === 'signup' && (
-              <div className="space-y-1.5">
-                <label className="text-xs font-bold text-slate-500 uppercase ml-1">Magaca (Username)</label>
-                <div className="relative">
-                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input 
-                    type="text" 
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="Geli magacaaga"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
-                    required
-                  />
-                </div>
-              </div>
-            )}
-            
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Email</label>
-              <div className="relative">
-                <Type className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input 
-                  type="email" 
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="tusaale@gmail.com"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Password</label>
-              <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                <input 
-                  type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
-                  required
-                  minLength={6}
-                />
-              </div>
-            </div>
-
-            <button 
-              type="submit"
-              disabled={isAuthLoading || authLoading}
-              className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
-            >
-              {isAuthLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  <span>Waa lala socdaa...</span>
+          {authMode === 'forgot' ? (
+            <form onSubmit={handleForgotPassword} className="w-full space-y-4">
+              {resetSent ? (
+                <div className="p-4 bg-green-50 text-green-700 rounded-xl text-center text-sm font-medium">
+                  Email ayaa loo soo diray email-kaaga. Fadlan hubi sanduuqaaga (Inbox).
                 </div>
               ) : (
-                <span>{authMode === 'login' ? 'Soo Gal' : 'Abuur Account'}</span>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input 
+                      type="email" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="tusaale@gmail.com"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
+                      required
+                    />
+                  </div>
+                </div>
               )}
-            </button>
-          </form>
-
-          <div className="w-full flex items-center gap-4 my-8">
-            <div className="flex-1 h-px bg-slate-100" />
-            <span className="text-xs font-bold text-slate-400 uppercase">Ama</span>
-            <div className="flex-1 h-px bg-slate-100" />
-          </div>
-
-          <button 
-            onClick={handleGoogleLogin}
-            disabled={isAuthLoading || authLoading}
-            className="w-full flex items-center justify-center gap-3 py-4 bg-white border border-slate-200 hover:border-primary hover:bg-slate-50 text-secondary rounded-xl font-bold transition-all active:scale-[0.98]"
-          >
-            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
-            <span>Google Ku Soo Gal</span>
-          </button>
-
-          <div className="mt-8 text-center">
-            <p className="text-sm text-slate-500">
-              {authMode === 'login' ? 'Account ma haysatid?' : 'Account horey ma u lahayd?'}
+              {!resetSent && (
+                <button 
+                  type="submit"
+                  disabled={isAuthLoading}
+                  className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all shadow-lg"
+                >
+                  {isAuthLoading ? 'Waa la soo dirayaa...' : 'Soo Dir Link-ga'}
+                </button>
+              )}
               <button 
-                onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
-                className="ml-2 text-primary font-bold hover:underline"
+                type="button"
+                onClick={() => { setAuthMode('login'); setResetSent(false); }}
+                className="w-full py-2 text-primary font-bold text-sm hover:underline"
               >
-                {authMode === 'login' ? 'Is diiwaangeli' : 'Soo gal'}
+                Ku laabo Login
               </button>
-            </p>
+            </form>
+          ) : (
+            <>
+              <form onSubmit={authMode === 'login' ? handleManualLogin : handleManualSignup} className="w-full space-y-4">
+                {authMode === 'signup' && (
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Magaca (Username)</label>
+                    <div className="relative">
+                      <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input 
+                        type="text" 
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        placeholder="Geli magacaaga"
+                        className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
+                
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500 uppercase ml-1">Email</label>
+                  <div className="relative">
+                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input 
+                      type="email" 
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="tusaale@gmail.com"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
+                      required
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <label className="text-xs font-bold text-slate-500 uppercase ml-1">Password</label>
+                    {authMode === 'login' && (
+                      <button 
+                        type="button"
+                        onClick={() => setAuthMode('forgot')}
+                        className="text-[10px] font-bold text-primary hover:underline"
+                      >
+                        Ma ilowday?
+                      </button>
+                    )}
+                  </div>
+                  <div className="relative">
+                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input 
+                      type="password" 
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
+                      required
+                      minLength={6}
+                    />
+                  </div>
+                </div>
+
+                <button 
+                  type="submit"
+                  disabled={isAuthLoading || authLoading}
+                  className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all shadow-lg"
+                >
+                  {isAuthLoading ? 'Loading...' : (authMode === 'login' ? 'Soo Gal' : 'Abuur Account')}
+                </button>
+              </form>
+
+              <div className="w-full flex items-center gap-4 my-6">
+                <div className="flex-1 h-px bg-slate-100" />
+                <span className="text-xs font-bold text-slate-400 uppercase">Ama</span>
+                <div className="flex-1 h-px bg-slate-100" />
+              </div>
+
+              <div className="w-full grid grid-cols-2 gap-3">
+                <button 
+                  onClick={() => handleSocialLogin('google')}
+                  className="flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 hover:border-primary text-secondary rounded-xl text-xs font-bold transition-all"
+                >
+                  <img src="https://www.google.com/favicon.ico" alt="G" className="w-4 h-4" />
+                  Google
+                </button>
+                <button 
+                  onClick={() => handleSocialLogin('github')}
+                  className="flex items-center justify-center gap-2 py-3 bg-white border border-slate-200 hover:border-primary text-secondary rounded-xl text-xs font-bold transition-all"
+                >
+                  <Github className="w-4 h-4 text-slate-900" />
+                  GitHub
+                </button>
+              </div>
+
+              <div className="mt-8 text-center">
+                <p className="text-sm text-slate-500">
+                  {authMode === 'login' ? 'Account ma haysatid?' : 'Account horey ma u lahayd?'}
+                  <button 
+                    onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                    className="ml-2 text-primary font-bold hover:underline"
+                  >
+                    {authMode === 'login' ? 'Is diiwaangeli' : 'Soo gal'}
+                  </button>
+                </p>
+              </div>
+            </>
+          )}
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
+const VerificationPrompt = () => {
+  const { verifyEmail } = useAuth();
+  const [sent, setSent] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const handleResend = async () => {
+    setLoading(true);
+    try {
+      await verifyEmail();
+      setSent(true);
+      setTimeout(() => setSent(false), 30000); // 30s cooldown
+    } catch (e) {
+      alert('Error: ' + e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="bg-amber-50 border-b border-amber-100 p-3">
+      <div className="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex items-center gap-3">
+          <Mail className="w-5 h-5 text-amber-600" />
+          <p className="text-sm text-amber-800 font-medium">
+            Fadlan hubi email-kaaga oo xaqiiji account-kaaga si aad u sii waddo isticmaalka.
+          </p>
+        </div>
+        <button 
+          onClick={handleResend}
+          disabled={sent || loading}
+          className="px-4 py-1.5 bg-amber-600 hover:bg-amber-700 disabled:bg-amber-400 text-white text-xs font-bold rounded-lg transition-colors whitespace-nowrap"
+        >
+          {loading ? 'Dirayaa...' : sent ? 'Waa la soo diray (30s)' : 'Hadda Dir'}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const UserDashboard = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+  const { user, userData, generations } = useAuth();
+
+  if (!isOpen || !user) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-secondary/80 backdrop-blur-md"
+      />
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl overflow-hidden"
+      >
+        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
+              <UserIcon className="w-6 h-6" />
+            </div>
+            <h3 className="font-heading font-bold text-xl text-secondary">Dashboard-kaaga</h3>
           </div>
+          <button onClick={onClose} className="p-2 hover:bg-slate-200 rounded-full transition-colors">
+            <X className="w-5 h-5 text-slate-500" />
+          </button>
+        </div>
+
+        <div className="p-8 space-y-8 max-h-[80vh] overflow-y-auto">
+          {/* Profile Header */}
+          <div className="flex flex-col sm:flex-row items-center gap-6 p-6 bg-slate-50 rounded-2xl border border-slate-100">
+            <img 
+              src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'User'}&background=random`} 
+              className="w-20 h-20 rounded-2xl border-4 border-white shadow-xl"
+              alt="Avatar"
+            />
+            <div className="text-center sm:text-left space-y-1">
+              <h4 className="text-2xl font-bold text-secondary">{user.displayName || 'User'}</h4>
+              <p className="text-slate-500 flex items-center gap-2 justify-center sm:justify-start">
+                <Mail className="w-4 h-4" /> {user.email}
+              </p>
+              <div className="flex gap-2 pt-2 justify-center sm:justify-start">
+                <span className="px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full uppercase tracking-wider">
+                  {userData?.tier || 'Free'} Plan
+                </span>
+                {user.emailVerified ? (
+                  <span className="px-3 py-1 bg-green-100 text-green-700 text-[10px] font-bold rounded-full uppercase tracking-wider flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3" /> Verified
+                  </span>
+                ) : (
+                   <span className="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-bold rounded-full uppercase tracking-wider">
+                    Unverified
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="p-4 bg-white border border-slate-100 shadow-sm rounded-2xl flex flex-col items-center text-center">
+              <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center mb-3">
+                <Coins className="w-6 h-6" />
+              </div>
+              <div className="text-2xl font-bold text-secondary">{userData?.credits || 0}</div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase">Credits Haray</div>
+            </div>
+            <div className="p-4 bg-white border border-slate-100 shadow-sm rounded-2xl flex flex-col items-center text-center">
+              <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-3">
+                <RefreshCw className="w-6 h-6" />
+              </div>
+              <div className="text-2xl font-bold text-secondary">{userData?.totalUsage || 0}</div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase">Wadarta Isticmaalka</div>
+            </div>
+            <div className="p-4 bg-white border border-slate-100 shadow-sm rounded-2xl flex flex-col items-center text-center">
+              <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-3">
+                <Clock className="w-6 h-6" />
+              </div>
+              <div className="text-xs font-bold text-secondary">Maalin Kasta</div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase">Credits Reset</div>
+            </div>
+          </div>
+
+          {/* Recent Generations */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h5 className="font-heading font-bold text-secondary flex items-center gap-2">
+                <History className="w-5 h-5 text-primary" /> Taariikhda Isticmaalka (History)
+              </h5>
+            </div>
+            <div className="space-y-3">
+              {generations.length > 0 ? generations.map((gen) => (
+                <div key={gen.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:border-primary/30 transition-all">
+                  <div className="flex items-center gap-4 overflow-hidden">
+                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm shrink-0">
+                      {tools.find(t => t.id === gen.toolId)?.icon ? (
+                        React.createElement(tools.find(t => t.id === gen.toolId)!.icon, { className: "w-5 h-5" })
+                      ) : (
+                        <Zap className="w-5 h-5" />
+                      )}
+                    </div>
+                    <div className="overflow-hidden">
+                      <div className="font-bold text-secondary text-sm truncate">
+                        {tools.find(t => t.id === gen.toolId)?.name || gen.toolId}
+                      </div>
+                      <div className="text-[10px] text-slate-500 truncate italic">
+                        {gen.result || 'No description available'}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-[10px] font-medium text-slate-400 whitespace-nowrap pl-4">
+                    {gen.timestamp?.toDate ? new Date(gen.timestamp.toDate()).toLocaleDateString() : 'Dhawaan'}
+                  </div>
+                </div>
+              )) : (
+                <div className="py-12 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                  <History className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+                  <p className="text-slate-500 text-sm">Wali wax taariikh ah ma jiraan.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="p-6 bg-slate-50 border-t border-slate-100 text-center">
+           <button 
+             onClick={() => window.location.hash = '#pricing'}
+             className="text-primary font-bold text-sm hover:underline"
+           >
+             Miyaad u baahan tahay Credits dheeraad ah? Upgrade hadda.
+           </button>
         </div>
       </motion.div>
     </div>
@@ -1336,16 +1596,16 @@ export default function App() {
   const [activeTool, setActiveTool] = useState<typeof tools[0] | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup' | 'forgot'>('login');
+  const [isDashboardOpen, setIsDashboardOpen] = useState(false);
 
   const faqs = [
     { q: "Miyaan isticmaali karaa qalabkan si lacag la'aan ah?", a: "Haa, Dualeabditools waxay bixisaa 5 Credits oo bilaash ah maalin kasta oo aad ku isticmaali karto agabka AI-ga." },
-    { q: "Sideen u heli karaa Credits dheeraad ah?", a: "Waxaad u baahan tahay inaad gasho (Login) si aad u hesho 5 credits ee bilaashka ah. Haddii aad u baahan tahay in kabadan, waxaad iska diiwaangelin kartaa qorshayaasha Pro ama Max." },
+    { q: "Sideen u heli karaa Credits dheeraad ah?", a: "Waxaad u baahan tay inaad gasho (Login) si aad u hesho 5 credits ee bilaashka ah. Haddii aad u baahan tahay in kabadan, waxaad iska diiwaangelin kartaa qorshayaasha Pro ama Max." },
     { q: "Xogtaydu miyay ammaan tahay?", a: "Xaqiiqdii. Wax walba waxaan ku dhex shaqaynaa browser-kaaga ama si ammaan ah ayaan API ugu dirnaa, marnaba ma kaydinno faylashaada ama qoraalkaaga." },
-    { q: "Ma u baahanahay inaan account furtay?", a: "Haa, si aad u isticmaasho agabka AI-ga (sida sawir u beddel qoraal), waxaad u baahan tahay inaad ku soo gasho Google account-kaaga." }
+    { q: "Ma u baahanahay inaan account furtay?", a: "Haa, si aad u isticmaasho agabka AI-ga (sida sawir u beddel qoraal), waxaad u baahan tay inaad ku soo gasho account-kaaga." }
   ];
-
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
 
   const openAuth = (mode: 'login' | 'signup' = 'login') => {
     setAuthModalMode(mode);
@@ -1362,6 +1622,11 @@ export default function App() {
 
   return (
     <div className="min-h-screen flex flex-col font-sans text-slate-800">
+      {/* Top Banner for Verification */}
+      {user && !user.emailVerified && user.providerData[0].providerId === 'password' && (
+        <VerificationPrompt />
+      )}
+
       {/* Navbar */}
       <nav className="sticky top-0 z-40 bg-white/80 backdrop-blur-md border-b border-slate-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1385,11 +1650,19 @@ export default function App() {
                 <div className="flex items-center gap-4">
                   <CreditWallet />
                   <div className="flex items-center gap-2 pl-4 border-l border-slate-200">
-                    <img 
-                      src={user.photoURL || ''} 
-                      alt={user.displayName || ''} 
-                      className="w-8 h-8 rounded-full border border-primary/20"
-                    />
+                    <button 
+                      onClick={() => setIsDashboardOpen(true)}
+                      className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                    >
+                      <img 
+                        src={user.photoURL || `https://ui-avatars.com/api/?name=${user.displayName || 'User'}&background=random`} 
+                        alt={user.displayName || ''} 
+                        className="w-8 h-8 rounded-full border border-primary/20"
+                      />
+                      <span className="text-sm font-bold text-secondary hidden lg:inline-block truncate max-w-[100px]">
+                        {user.displayName?.split(' ')[0]}
+                      </span>
+                    </button>
                     <button 
                       onClick={handleLogout}
                       className="p-2 text-slate-400 hover:text-rose-500 transition-colors"
@@ -1824,6 +2097,14 @@ export default function App() {
             isOpen={isAuthModalOpen} 
             onClose={() => setIsAuthModalOpen(false)} 
             initialMode={authModalMode} 
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isDashboardOpen && (
+          <UserDashboard 
+            isOpen={isDashboardOpen} 
+            onClose={() => setIsDashboardOpen(false)} 
           />
         )}
       </AnimatePresence>

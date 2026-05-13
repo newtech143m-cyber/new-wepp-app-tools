@@ -41,6 +41,15 @@ service cloud.firestore {
              (!('totalUsage' in data) || data.totalUsage is int);
     }
 
+    function isValidGeneration(data) {
+      return data.keys().hasAll(['userId', 'toolId', 'createdAt']) &&
+             data.userId == request.auth.uid &&
+             data.toolId is string &&
+             data.toolId.size() <= 50 &&
+             (!('result' in data) || (data.result is string && data.result.size() <= 5000)) &&
+             data.createdAt == request.time;
+    }
+
     // --- Collection Routes ---
     match /users/{userId} {
       allow get: if isOwner(userId) || isAdmin();
@@ -60,13 +69,24 @@ service cloud.firestore {
           request.resource.data.credits == resource.data.credits - 1 &&
           request.resource.data.totalUsage == (resource.data.totalUsage ? resource.data.totalUsage : 0) + 1
         ) ||
+        // Action: Update Profile
+        (
+          isOwner(userId) && 
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['username', 'email']) &&
+          (!('username' in resource.data) || request.resource.data.username != resource.data.username)
+        ) ||
         // Action: Admin Upgrade
-        isAdmin() ||
-        // Action: Self-Update
-        (isOwner(userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['email']) && request.resource.data.email == request.auth.token.email)
+        isAdmin()
       );
       
       allow delete: if isAdmin();
+    }
+
+    match /generations/{genId} {
+      allow list: if isSignedIn() && request.query.limit <= 20 && resource.data.userId == request.auth.uid;
+      allow get: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create: if isSignedIn() && isValidGeneration(request.resource.data);
+      allow update, delete: if isAdmin();
     }
   }
 }
