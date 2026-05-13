@@ -1141,7 +1141,8 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean
       if (error.code === 'auth/user-not-found') message = 'Email-kan laguma helin xogta.';
       else if (error.code === 'auth/wrong-password') message = 'Password-kaagu waa khalad.';
       else if (error.code === 'auth/invalid-email') message = 'Email-ka aad gelisay ma saxna.';
-      else if (error.code === 'auth/popup-blocked') message = 'Popup-ka ayaa la xiray.';
+      else if (error.code === 'auth/operation-not-allowed') message = 'Nidaamka Email/Password laguma fasaxin Console-ka.';
+      else if (error.code === 'auth/network-request-failed') message = 'Hubi internet-kaaga.';
       alert(message);
     } finally {
       setIsAuthLoading(false);
@@ -1157,6 +1158,8 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean
     setIsAuthLoading(true);
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      // Wait for a small moment to ensure auth state is fully recognized before updating profile
+      await new Promise(resolve => setTimeout(resolve, 500));
       await updateProfile(userCredential.user, { displayName: username });
       onClose();
     } catch (error: any) {
@@ -1164,6 +1167,9 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean
       let message = 'Cillad ayaa dhacday markii aad is diiwaangelinaysay.';
       if (error.code === 'auth/email-already-in-use') message = 'Email-kan horey ayaa loo isticmaalay.';
       else if (error.code === 'auth/weak-password') message = 'Password-kaagu waa inuu ugu yaraan ka koobnaadaa 6 xaraf.';
+      else if (error.code === 'auth/operation-not-allowed') message = 'Nidaamka is-diiwaangelinta Email/Password laguma fasaxin Firebase Console-ka. Fadlan Google ku soo gal ama la xiriir maamulaha.';
+      else if (error.code === 'auth/invalid-email') message = 'Email-ka aad gelisay ma saxna.';
+      else if (error.code === 'auth/network-request-failed') message = 'Cillad dhanka internet-ka ah. Fadlan xiriirkaaga hubi.';
       alert(message);
     } finally {
       setIsAuthLoading(false);

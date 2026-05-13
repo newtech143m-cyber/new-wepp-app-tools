@@ -6,6 +6,7 @@
       "type": "object",
       "properties": {
         "email": { "type": "string" },
+        "username": { "type": "string" },
         "credits": { "type": "integer" },
         "tier": { "type": "string", "enum": ["free", "pro", "max"] },
         "lastReset": { "type": "string", "format": "date-time" },
