@@ -1,11 +1,33 @@
 @import "tailwindcss";
 
+:root {
+  --primary-color: #00ff78; /* Green buttons in light mode */
+  --primary-dark: #00e069;
+  --bg-color: #ffffff;
+  --text-color: #0b0d11;
+  --card-bg: #f8fafc; /* Soft soft soft light gray for cards */
+  --border-color: rgba(0, 0, 0, 0.06);
+  --primary-glow: rgba(0, 255, 120, 0.15);
+  --btn-text: #0b0d11;
+}
+
+.dark {
+  --primary-color: #00ff78; /* Green buttons in dark mode */
+  --primary-dark: #00e069;
+  --bg-color: #0b0d11;
+  --text-color: #ffffff;
+  --card-bg: #161a22; /* Dark boxes in dark mode */
+  --border-color: rgba(255, 255, 255, 0.05);
+  --primary-glow: rgba(0, 255, 120, 0.3);
+  --btn-text: #0b0d11;
+}
+
 @theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-heading: "Outfit", ui-sans-serif, system-ui, sans-serif;
   
-  --color-primary: #00ff78;
-  --color-primary-dark: #00e069;
+  --color-primary: var(--primary-color);
+  --color-primary-dark: var(--primary-dark);
   --color-primary-light: rgba(0, 255, 120, 0.1);
   --color-secondary: #0b0d11;
   --color-secondary-light: #161a22;
@@ -13,8 +35,9 @@
 
 body {
   font-family: var(--font-sans);
-  background-color: #0b0d11;
-  color: #ffffff;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.4s cubic-bezier(0.4, 0, 0.2, 1), color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 h1, h2, h3, h4, h5, h6, .font-heading {

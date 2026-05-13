@@ -15,6 +15,7 @@ import {
   ChevronUp,
   CheckCircle2,
   Star,
+  Sparkles,
   ArrowRight,
   Upload,
   Download,
@@ -25,6 +26,7 @@ import {
   Shield,
   Palette,
   Globe,
+  Layout,
   Coins,
   Banknote,
   DollarSign,
@@ -40,7 +42,10 @@ import {
   Mail,
   RefreshCw,
   Clock,
-  History
+  History,
+  Send,
+  Sun,
+  Moon
 } from 'lucide-react';
 import { GoogleGenAI } from '@google/genai';
 import * as XLSX from 'xlsx';
@@ -52,6 +57,113 @@ const playCompleteSound = () => {
   const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
   audio.volume = 0.5;
   audio.play().catch(e => console.log('Audio play failed:', e));
+};
+
+const AIChat = () => {
+  const [messages, setMessages] = useState<{ role: 'user' | 'ai', text: string }[]>([
+    { role: 'ai', text: 'Hi! I am the Dualeaditools AI. Ask me anything about our AI tools!' }
+  ]);
+  const [input, setInput] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+    }
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!input.trim() || isLoading) return;
+
+    const userMessage = input.trim();
+    setInput('');
+    setMessages(prev => [...prev, { role: 'user', text: userMessage }]);
+    setIsLoading(true);
+
+    try {
+      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY as string });
+      const response = await ai.models.generateContent({
+        model: "gemini-3-flash-preview",
+        contents: userMessage,
+        config: {
+          systemInstruction: "You are the official AI assistant for Dualeaditools. Dualeaditools is an AI Creative Tools platform offering: 1. Text-to-Speech (supporting Somali & English with high-quality voices), 2. Image-to-Text (OCR for extracting text from images), 3. Voice-to-Text (Transcription for converting audio to text), 4. Text-to-Image (AI image generation). All tools are completely FREE to use. Users can improve productivity by 20x. Answer questions concisely and professionally about these features. If asked about pricing, confirm it is free. If asked how to start, suggest signing up for a free account. Respond in the language the user uses (Somali or English)."
+        }
+      });
+
+      setMessages(prev => [...prev, { role: 'ai', text: response.text || "I'm sorry, I couldn't process that." }]);
+    } catch (error) {
+      console.error('Gemini Error:', error);
+      setMessages(prev => [...prev, { role: 'ai', text: "Error connecting to AI. Please try again later." }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="flex flex-col h-[480px] bg-[var(--card-bg)] backdrop-blur-2xl rounded-[2.5rem] border border-primary/20 overflow-hidden shadow-2xl">
+      <div className="p-8 border-b border-[var(--border-color)] bg-black/5 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.1)]">
+            <Zap className="w-6 h-6 animate-pulse" />
+          </div>
+          <div>
+            <h4 className="text-[var(--text-color)] font-black text-lg uppercase tracking-tighter leading-none">Dualeaditools AI</h4>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="w-2 h-2 rounded-full bg-primary animate-ping" />
+              <p className="text-primary text-[10px] font-black uppercase tracking-widest leading-none">Interactive Assistant</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div ref={scrollRef} className="flex-1 overflow-y-auto p-8 space-y-6 custom-scrollbar scroll-smooth">
+        {messages.map((msg, i) => (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            key={i} 
+            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+          >
+            <div className={`max-w-[85%] p-5 rounded-[1.5rem] text-sm font-bold leading-relaxed shadow-lg ${
+              msg.role === 'user' 
+                ? 'bg-primary text-black rounded-tr-none shadow-[0_10px_30px_rgba(0,255,120,0.2)]' 
+                : 'bg-[var(--card-bg)] text-[var(--text-color)] border border-[var(--border-color)] rounded-tl-none'
+            }`}>
+              {msg.text}
+            </div>
+          </motion.div>
+        ))}
+        {isLoading && (
+          <div className="flex justify-start">
+            <div className="bg-[var(--card-bg)] text-slate-500 p-5 rounded-[1.5rem] rounded-tl-none text-[10px] font-black uppercase tracking-[0.2em] animate-pulse border border-[var(--border-color)] shadow-lg">
+               AI is typing...
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="p-6 bg-[var(--card-bg)] border-t border-[var(--border-color)]">
+        <div className="relative group">
+          <input 
+            type="text" 
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            placeholder="Ask something about our AI..."
+            className="w-full bg-[var(--card-bg)] border border-[var(--border-color)] rounded-[1.8rem] py-5 pl-8 pr-16 text-[var(--text-color)] text-sm font-bold focus:outline-none focus:border-primary/50 focus:ring-4 focus:ring-primary/5 transition-all shadow-inner"
+          />
+          <button 
+            onClick={handleSend}
+            disabled={isLoading || !input.trim()}
+            className="absolute right-2.5 top-2.5 bottom-2.5 px-5 bg-primary text-black rounded-[1.2rem] font-black hover:bg-white hover:shadow-[0_0_20px_rgba(0,255,120,0.4)] transition-all disabled:opacity-30 disabled:cursor-not-allowed active:scale-90"
+          >
+            <Send className="w-5 h-5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const ProcessingAnimation = ({ toolName, icon: Icon }: { toolName: string, icon: any }) => {
@@ -81,7 +193,7 @@ const ProcessingAnimation = ({ toolName, icon: Icon }: { toolName: string, icon:
   }, []);
 
   return (
-    <div className="relative overflow-hidden bg-[#0b0d11] rounded-[3rem] p-12 min-h-[520px] w-full flex flex-col items-center justify-center border border-white/5 shadow-[0_40px_100px_rgba(0,0,0,0.6)]">
+    <div className="relative overflow-hidden bg-[var(--bg-color)] rounded-[3rem] p-12 min-h-[520px] w-full flex flex-col items-center justify-center border border-[var(--border-color)] shadow-xl">
       {/* Background Glow */}
       <div className="absolute inset-0 bg-primary/5 blur-[120px] pointer-events-none" />
       
@@ -108,7 +220,7 @@ const ProcessingAnimation = ({ toolName, icon: Icon }: { toolName: string, icon:
           />
         </motion.div>
 
-        <h3 className="text-2xl font-black text-white uppercase tracking-widest mb-8 text-center leading-tight">
+        <h3 className="text-2xl font-black text-[var(--text-color)] uppercase tracking-widest mb-8 text-center leading-tight">
           AI {toolName} <br />
           <span className="text-primary text-sm tracking-[0.4em]">In Progress</span>
         </h3>
@@ -174,7 +286,7 @@ const ProcessingAnimation = ({ toolName, icon: Icon }: { toolName: string, icon:
                <div className="absolute inset-0 bg-primary/10 rounded-[3rem] blur-2xl pulse" />
                <CheckCircle2 className="w-24 h-24 text-primary relative z-10" />
             </motion.div>
-            <h4 className="text-4xl font-black text-white mb-4 uppercase tracking-widest">Done!</h4>
+            <h4 className="text-4xl font-black text-[var(--text-color)] mb-4 uppercase tracking-widest">Done!</h4>
             <div className="h-1 w-12 bg-primary rounded-full mb-6 mx-auto" />
             <p className="text-slate-500 font-bold text-sm leading-relaxed max-w-[240px]">The processing is complete. Your result is ready.</p>
           </motion.div>
@@ -220,7 +332,7 @@ const TextCaseConverter = () => {
             <button onClick={() => applyAction(() => setText(text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()))} className="px-4 py-2 bg-slate-100 hover:bg-primary-light rounded-lg text-sm font-medium transition-colors text-slate-800">Bilaawga Weynee</button>
           </div>
           <div className="flex justify-end">
-            <button onClick={() => navigator.clipboard.writeText(text)} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg text-sm font-medium transition-colors shadow-md">
+            <button onClick={() => navigator.clipboard.writeText(text)} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-[var(--btn-text)] rounded-lg text-sm font-medium transition-colors shadow-md">
               <Copy className="w-4 h-4" /> Koobiyeey
             </button>
           </div>
@@ -287,7 +399,7 @@ const WordCounter = () => {
           <div className="flex justify-center">
             <button 
               onClick={handleAnalyze} 
-              className="flex items-center gap-2 px-8 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all shadow-lg active:scale-95"
+              className="flex items-center gap-2 px-8 py-2.5 bg-primary hover:bg-primary-dark text-[var(--btn-text)] rounded-xl font-bold transition-all shadow-lg active:scale-95"
             >
               <Hash className="w-4 h-4" /> Tiri Erayada
             </button>
@@ -326,7 +438,7 @@ const RemoveExtraSpaces = () => {
         <div className="flex justify-between items-center">
           <button 
             onClick={handleRemove} 
-            className="flex items-center gap-2 px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors shadow-md"
+            className="flex items-center gap-2 px-6 py-2 bg-primary hover:bg-primary-dark text-[var(--btn-text)] rounded-lg font-medium transition-colors shadow-md"
           >
             <Scissors className="w-4 h-4" /> Ka saar Boosaska Dheeraadka ah
           </button>
@@ -430,7 +542,7 @@ const ImageToText = () => {
         ) : (
           <button 
             onClick={extractText} 
-            className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md hover:shadow-lg translate-y-0 active:translate-y-1"
+            className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-[var(--btn-text)] rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md hover:shadow-lg translate-y-0 active:translate-y-1"
           >
             <FileText className="w-4 h-4" /> Soo saar Qoraalka
           </button>
@@ -754,7 +866,7 @@ const TitleToImage = () => {
               <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-40" />
               
               {tagText && (
-                <div className="absolute top-6 left-6 bg-primary text-white text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
+                <div className="absolute top-6 left-6 bg-primary text-[var(--btn-text)] text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-lg">
                   {tagText}
                 </div>
               )}
@@ -764,7 +876,7 @@ const TitleToImage = () => {
                 </div>
               )}
               <div className="absolute bottom-6 left-6 right-6 opacity-0 group-hover:opacity-100 transition-opacity">
-                <h3 className="text-white font-bold text-xl leading-tight drop-shadow-md">
+                <h3 className="text-[var(--text-color)] font-bold text-xl leading-tight drop-shadow-md">
                   {title}
                 </h3>
               </div>
@@ -887,7 +999,7 @@ const BackgroundGenerator = () => {
                 onClick={() => setColorTheme(opt.name)}
                 className={`p-2 text-[10px] font-bold rounded-lg border transition-all ${
                   colorTheme === opt.name 
-                    ? 'bg-primary text-white border-primary shadow-md' 
+                    ? 'bg-primary text-[var(--btn-text)] border-primary shadow-md' 
                     : 'bg-white text-slate-600 border-slate-200 hover:border-primary'
                 }`}
               >
@@ -916,7 +1028,7 @@ const BackgroundGenerator = () => {
         ) : (
           <button 
             onClick={generateBackground} 
-            className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md translate-y-0 active:translate-y-1"
+            className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-[var(--btn-text)] rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md translate-y-0 active:translate-y-1"
           >
             <Wand2 className="w-4 h-4" /> Diyaari Background-ka
           </button>
@@ -1127,7 +1239,7 @@ const PdfToExcelNames = () => {
             <button 
               onClick={processPdfs}
               disabled={files.length === 0}
-              className="px-8 py-3 bg-primary hover:bg-primary-dark disabled:bg-slate-300 text-white rounded-xl font-medium transition-colors flex items-center gap-2 shadow-md"
+              className="px-8 py-3 bg-primary hover:bg-primary-dark disabled:bg-slate-300 text-[var(--btn-text)] rounded-xl font-medium transition-colors flex items-center gap-2 shadow-md"
             >
               <Wand2 className="w-5 h-5" /> Soo saar Magacyada
             </button>
@@ -1241,7 +1353,7 @@ const PdfToJpg = () => {
           </div>
           <button 
             onClick={handleConvert}
-            className="px-8 py-3 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all shadow-lg active:scale-95 flex items-center gap-2 mx-auto"
+            className="px-8 py-3 bg-primary hover:bg-primary-dark text-[var(--btn-text)] rounded-xl font-bold transition-all shadow-lg active:scale-95 flex items-center gap-2 mx-auto"
           >
             <Zap className="w-4 h-4" /> Hadda tijaabi
           </button>
@@ -1438,13 +1550,13 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-secondary/80 backdrop-blur-md"
+        className="absolute inset-0 bg-black/60 backdrop-blur-md"
       />
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 40 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 40 }}
-        className="relative w-full max-w-[440px] bg-[#161a22] rounded-[3rem] shadow-[0_40px_120px_rgba(0,0,0,0.8)] overflow-hidden border border-primary/20"
+        className="relative w-full max-w-[440px] bg-[var(--card-bg)] rounded-[3rem] shadow-[0_40px_120px_rgba(0,0,0,0.8)] overflow-hidden border border-primary/20"
       >
         <button 
           onClick={onClose}
@@ -1459,7 +1571,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean
             <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto mb-6 border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.1)]">
               <Zap className="w-8 h-8" />
             </div>
-            <h3 className="font-heading font-black text-3xl text-white tracking-tighter uppercase">
+            <h3 className="font-heading font-black text-3xl text-[var(--text-color)] tracking-tighter uppercase">
               {authMode === 'login' ? 'Ku Soo Gal' : authMode === 'signup' ? 'Is Diiwaangeli' : 'Beddel Password-ka'}
             </h3>
             <p className="text-slate-500 mt-3 font-bold text-sm">
@@ -1482,12 +1594,12 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean
                       type="email" 
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-[1.5rem] text-white focus:border-primary focus:ring-0 transition-all font-bold placeholder:text-slate-700 shadow-inner" 
+                      className="w-full px-6 py-4 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-[1.5rem] text-[var(--text-color)] focus:border-primary focus:ring-0 transition-all font-bold placeholder:text-slate-500 shadow-inner" 
                       placeholder="tusaale@gmail.com"
                       required
                     />
                   </div>
-                  <button className="w-full py-4 bg-primary hover:bg-primary-dark text-black rounded-[1.5rem] font-black uppercase tracking-widest transition-all shadow-lg">
+                  <button className="w-full py-4 bg-primary hover:bg-primary-dark text-[var(--btn-text)] rounded-[1.5rem] font-black uppercase tracking-widest transition-all shadow-lg">
                     {isAuthLoading ? 'Waa la dirayaa...' : 'Soo dir Link-ga'}
                   </button>
                 </>
@@ -1510,7 +1622,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean
                       type="text" 
                       value={username}
                       onChange={(e) => setUsername(e.target.value)}
-                      className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-[1.5rem] text-white focus:border-primary focus:ring-0 transition-all font-bold placeholder:text-slate-700 shadow-inner" 
+                      className="w-full px-6 py-4 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-[1.5rem] text-[var(--text-color)] focus:border-primary focus:ring-0 transition-all font-bold placeholder:text-slate-500 shadow-inner" 
                       placeholder="Dahir Ali"
                       required
                     />
@@ -1546,7 +1658,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean
                     type="password" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-[1.5rem] text-white focus:border-primary focus:ring-0 transition-all font-bold placeholder:text-slate-700 shadow-inner" 
+                    className="w-full px-6 py-4 bg-[var(--bg-color)] border border-[var(--border-color)] rounded-[1.5rem] text-[var(--text-color)] focus:border-primary focus:ring-0 transition-all font-bold placeholder:text-slate-500 shadow-inner" 
                     placeholder="••••••••"
                     required
                   />
@@ -1555,7 +1667,7 @@ const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean
                 <button 
                   type="submit"
                   disabled={isAuthLoading}
-                  className="w-full py-5 bg-primary hover:bg-primary-dark disabled:bg-slate-700 text-black rounded-[1.5rem] font-black uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(0,255,120,0.2)]"
+                  className="w-full py-5 bg-primary hover:bg-primary-dark disabled:bg-slate-700 text-[var(--btn-text)] rounded-[1.5rem] font-black uppercase tracking-widest transition-all shadow-[0_10px_30px_rgba(0,255,120,0.2)]"
                 >
                   {isAuthLoading ? 'Waa la shaqaynayaa...' : (authMode === 'login' ? 'Soo Gal' : 'Abuur Account')}
                 </button>
@@ -1656,13 +1768,13 @@ const UserDashboard = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-[#0b0d11]/80 backdrop-blur-xl"
+        className="absolute inset-0 bg-[var(--bg-color)]/80 backdrop-blur-xl"
       />
       <motion.div 
         initial={{ opacity: 0, scale: 0.95, y: 40 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.95, y: 40 }}
-        className="relative w-full max-w-2xl bg-[#161a22] rounded-[3rem] shadow-[0_40px_120px_rgba(0,0,0,0.8)] overflow-hidden border border-primary/20"
+        className="relative w-full max-w-2xl bg-[var(--card-bg)] rounded-[3rem] shadow-[0_40px_120px_rgba(0,0,0,0.8)] overflow-hidden border border-primary/20"
       >
         <div className="p-10 border-b border-white/5 flex justify-between items-center bg-white/5">
           <div className="flex items-center gap-4">
@@ -1670,7 +1782,7 @@ const UserDashboard = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
               <UserIcon className="w-6 h-6" />
             </div>
             <div>
-               <h3 className="font-heading font-black text-2xl text-white uppercase tracking-tighter">Profile-kaaga</h3>
+               <h3 className="font-heading font-black text-2xl text-[var(--text-color)] uppercase tracking-tighter">Profile-kaaga</h3>
                <p className="text-slate-500 text-[10px] font-black uppercase tracking-widest">Dashboard-ka Account-ka</p>
             </div>
           </div>
@@ -1689,12 +1801,12 @@ const UserDashboard = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
               alt="Avatar"
             />
             <div className="text-center sm:text-left space-y-3 relative z-10">
-              <h4 className="text-3xl font-black text-white tracking-tighter">{user.displayName || 'User'}</h4>
+              <h4 className="text-3xl font-black text-[var(--text-color)] tracking-tighter">{user.displayName || 'User'}</h4>
               <p className="text-slate-500 flex items-center gap-2 justify-center sm:justify-start font-bold text-sm">
                 <Mail className="w-4 h-4 text-primary" /> {user.email}
               </p>
               <div className="flex gap-3 pt-2 justify-center sm:justify-start">
-                <span className="px-4 py-1.5 bg-primary text-black text-[10px] font-black rounded-full uppercase tracking-[0.2em]">
+                <span className="px-4 py-1.5 bg-primary text-[var(--btn-text)] text-[10px] font-black rounded-full uppercase tracking-[0.2em]">
                   Unlimited Member
                 </span>
                 {user.emailVerified ? (
@@ -1716,14 +1828,14 @@ const UserDashboard = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
               <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.05)]">
                 <Zap className="w-7 h-7" />
               </div>
-              <div className="text-4xl font-black text-white tracking-tighter mb-1">{userData?.totalUsage || 0}</div>
+              <div className="text-4xl font-black text-[var(--text-color)] tracking-tighter mb-1">{userData?.totalUsage || 0}</div>
               <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Wadarta Isticmaalka</div>
             </div>
             <div className="p-8 bg-white/5 border border-white/5 rounded-[2.5rem] flex flex-col items-center text-center group hover:border-primary/20 transition-all">
               <div className="w-14 h-14 bg-primary/10 text-primary rounded-2xl flex items-center justify-center mb-6 border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.05)]">
                 <Shield className="w-7 h-7" />
               </div>
-              <div className="text-xl font-black text-white uppercase tracking-widest mb-1 italic">Noloshaada</div>
+              <div className="text-xl font-black text-[var(--text-color)] uppercase tracking-widest mb-1 italic">Noloshaada</div>
               <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Bilaash Ah</div>
             </div>
           </div>
@@ -1749,6 +1861,15 @@ export default function App() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [authModalMode, setAuthModalMode] = useState<'login' | 'signup' | 'forgot'>('login');
   const [isDashboardOpen, setIsDashboardOpen] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(true);
+
+  useEffect(() => {
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, [isDarkMode]);
 
   const faqs = [
     { q: "Miyaan isticmaali karaa qalabkan si lacag la'aan ah?", a: "Haa, dhammaan agabka Dualeaditools waa 100% bilaash. Ma jirto qidmad ama lacag qarsoon." },
@@ -1771,21 +1892,21 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col font-sans text-slate-800">
+    <div className="min-h-screen flex flex-col font-sans transition-colors duration-300">
       {/* Top Banner for Verification */}
       {user && !user.emailVerified && user.providerData[0].providerId === 'password' && (
         <VerificationPrompt />
       )}
 
       {/* Navbar */}
-      <nav className="sticky top-0 z-40 bg-[#0b0d11]/80 backdrop-blur-xl border-b border-white/5">
+      <nav className="sticky top-0 z-40 bg-[var(--bg-color)]/80 backdrop-blur-xl border-b border-[var(--border-color)]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-20">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30">
                 <FileText className="w-6 h-6 text-primary" />
               </div>
-              <span className="font-heading font-black text-2xl tracking-tighter text-white">Dualeaditools</span>
+              <span className="font-heading font-black text-2xl tracking-tighter text-[var(--text-color)]">Dualeaditools</span>
             </div>
             
             {/* Desktop Menu */}
@@ -1794,6 +1915,14 @@ export default function App() {
               <a href="#how-it-works" className="text-sm font-bold text-slate-400 hover:text-primary transition-colors">How It Works</a>
               <a href="#tools" className="text-sm font-bold text-slate-400 hover:text-primary transition-colors">Tools</a>
               <a href="#faq" className="text-sm font-bold text-slate-400 hover:text-primary transition-colors">FAQ</a>
+              
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 text-primary"
+                title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
             </div>
 
             <div className="hidden md:flex items-center gap-6">
@@ -1824,13 +1953,13 @@ export default function App() {
                 <div className="flex items-center gap-4">
                   <button 
                     onClick={() => openAuth('login')}
-                    className="text-sm font-bold text-white hover:text-primary transition-colors"
+                    className="text-sm font-bold text-[var(--text-color)] hover:text-primary transition-colors"
                   >
                     Sign In
                   </button>
                   <button 
                     onClick={() => openAuth('signup')}
-                    className="px-6 py-2.5 bg-primary hover:bg-primary-dark text-black rounded-xl text-sm font-black transition-all shadow-[0_0_20px_rgba(0,255,120,0.3)] active:scale-95"
+                    className="px-6 py-2.5 bg-primary hover:bg-primary-dark text-[var(--btn-text)] rounded-xl text-sm font-black transition-all shadow-[0_0_20px_rgba(0,255,120,0.3)] active:scale-95"
                   >
                     Get Started
                   </button>
@@ -1838,9 +1967,14 @@ export default function App() {
               )}
             </div>
 
-            {/* Mobile Menu Button */}
-            <div className="md:hidden flex items-center">
-              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-slate-600 hover:text-slate-900">
+            <div className="md:hidden flex items-center gap-4">
+              <button 
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className="p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/10 text-primary"
+              >
+                {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              </button>
+              <button onClick={() => setMobileMenuOpen(!mobileMenuOpen)} className="text-slate-400 hover:text-primary">
                 {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
               </button>
             </div>
@@ -1854,7 +1988,7 @@ export default function App() {
                 initial={{ height: 0, opacity: 0 }}
                 animate={{ height: 'auto', opacity: 1 }}
                 exit={{ height: 0, opacity: 0 }}
-                className="md:hidden bg-[#161a22] border-b border-white/5 overflow-hidden"
+                className="md:hidden bg-[var(--card-bg)] border-b border-[var(--border-color)] overflow-hidden"
               >
                 <div className="px-4 pt-2 pb-6 space-y-1">
                   <a href="#home" onClick={() => setMobileMenuOpen(false)} className="block px-4 py-3 rounded-2xl text-base font-black text-slate-400 hover:text-primary hover:bg-white/5 uppercase tracking-widest transition-all">Home</a>
@@ -1891,7 +2025,7 @@ export default function App() {
                   <span className="text-xs font-black text-primary uppercase tracking-[0.2em]">Next-Gen AI Platform</span>
                 </div>
 
-                <h1 className="font-heading text-6xl sm:text-7xl font-black text-white leading-[1.05] tracking-tighter mb-8">
+                <h1 className="font-heading text-6xl sm:text-7xl font-black text-[var(--text-color)] leading-[1.05] tracking-tighter mb-8">
                   Let AI Create <br />
                   Content <span className="text-primary scribble">20X Faster</span>
                 </h1>
@@ -1903,11 +2037,11 @@ export default function App() {
                 <div className="flex flex-col sm:flex-row gap-5 mb-16">
                   <button 
                     onClick={() => openAuth('signup')}
-                    className="inline-flex items-center justify-center gap-3 px-10 py-5 text-base font-black text-black bg-primary hover:bg-[#00e069] rounded-[2rem] transition-all shadow-[0_20px_40px_rgba(0,255,120,0.2)] active:scale-95"
+                    className="inline-flex items-center justify-center gap-3 px-10 py-5 text-base font-black text-[var(--btn-text)] bg-primary hover:bg-primary-dark rounded-[2rem] transition-all shadow-[0_20px_40px_rgba(0,255,120,0.2)] active:scale-95"
                   >
                     Get Started Free <ArrowRight className="w-5 h-5" />
                   </button>
-                  <a href="#how-it-works" className="inline-flex items-center justify-center gap-3 px-10 py-5 text-base font-black text-white bg-white/5 border border-white/10 hover:bg-white/10 rounded-[2rem] transition-all">
+                  <a href="#how-it-works" className="inline-flex items-center justify-center gap-3 px-10 py-5 text-base font-black text-[var(--text-color)] bg-[var(--card-bg)] border border-[var(--border-color)] hover:bg-[var(--bg-color)] rounded-[2rem] transition-all">
                     Book A Demo
                   </a>
                 </div>
@@ -1915,138 +2049,159 @@ export default function App() {
                 {/* Stats */}
                 <div className="flex items-center gap-10">
                   <div className="space-y-1">
-                    <div className="text-3xl font-black text-white tracking-tighter">12,000+</div>
+                    <div className="text-3xl font-black text-[var(--text-color)] tracking-tighter">12,000+</div>
                     <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Current Users</div>
                   </div>
                   <div className="w-px h-10 bg-white/10" />
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                        <Star className="w-5 h-5 text-primary fill-primary" />
-                       <div className="text-3xl font-black text-white tracking-tighter">99%</div>
+                       <div className="text-3xl font-black text-[var(--text-color)] tracking-tighter">99%</div>
                     </div>
                     <div className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none">Satisfaction Rate</div>
                   </div>
                 </div>
               </motion.div>
 
-              {/* Right Column - Dashboard Preview Mockup */}
+              {/* Right Column - Custom Shaped Hero Image */}
               <motion.div
-                initial={{ opacity: 0, scale: 0.8, rotate: 5 }}
-                animate={{ opacity: 1, scale: 1, rotate: 0 }}
-                transition={{ duration: 1.2, ease: "easeOut" }}
-                className="relative"
+                initial={{ opacity: 0, x: 50 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 1, delay: 0.2 }}
+                className="relative lg:ml-auto"
               >
-                {/* Floating Elements */}
-                <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/20 rounded-full blur-[100px] -z-10" />
-                <div className="absolute -bottom-20 -left-10 w-60 h-60 bg-blue-500/20 rounded-full blur-[120px] -z-10" />
+                {/* Background Shape Blobs */}
+                <div className="absolute -top-20 -right-20 w-80 h-80 bg-primary/10 rounded-full blur-[120px] -z-10" />
+                <div className="absolute -bottom-20 -left-20 w-60 h-60 bg-blue-500/10 rounded-full blur-[100px] -z-10" />
 
-                <div className="relative bg-[#161a22] rounded-[2.5rem] p-3 shadow-2xl border border-primary/20 overflow-hidden group">
-                   <div className="absolute inset-0 bg-primary/5 group-hover:bg-primary/10 transition-colors" />
-                  <div className="bg-[#0b0d11] rounded-[2rem] overflow-hidden shadow-inner relative z-10 border border-white/5">
-                    <div className="p-10 space-y-10">
-                      {/* Dashboard Header Mockup */}
-                      <div className="flex justify-between items-center">
-                        <div className="space-y-2">
-                          <h4 className="text-white font-black text-2xl tracking-tight uppercase tracking-widest">Hi creator!</h4>
-                          <p className="text-slate-500 text-sm font-bold">Select a tool to begin.</p>
-                        </div>
-                        <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-primary/20 bg-primary/5 flex items-center justify-center">
-                          <UserIcon className="w-6 h-6 text-primary" />
-                        </div>
+                {/* The Main Shape Construction */}
+                <div className="relative w-full max-w-[500px] aspect-[4/5] mx-auto">
+                  {/* Decorative Sparkles (from image 1) */}
+                  <motion.div 
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+                    className="absolute top-10 right-10 z-0 opacity-20"
+                  >
+                    <Sparkles className="w-20 h-20 text-primary" />
+                  </motion.div>
+                  <motion.div 
+                    animate={{ rotate: -360 }}
+                    transition={{ duration: 25, repeat: Infinity, ease: "linear" }}
+                    className="absolute bottom-20 left-0 z-0 opacity-10"
+                  >
+                    <Sparkles className="w-32 h-32 text-blue-500" />
+                  </motion.div>
+
+                  {/* Floating elements like image 2 */}
+                  <motion.div
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ duration: 4, repeat: Infinity }}
+                    className="absolute -top-10 -left-10 w-32 h-32 bg-[#0066ff] rounded-[2.5rem] shadow-2xl z-20 flex items-center justify-center p-8 border-4 border-white/10"
+                  >
+                    <div className="w-full h-full bg-white/20 rounded-2xl" />
+                  </motion.div>
+
+                  <motion.div
+                    animate={{ y: [0, 10, 0] }}
+                    transition={{ duration: 5, repeat: Infinity, delay: 0.5 }}
+                    className="absolute -bottom-10 -right-10 w-40 h-64 bg-[#00c853] rounded-[3rem] shadow-2xl z-0 flex flex-col items-center justify-end p-8 gap-4 border-4 border-white/10"
+                  >
+                    <div className="w-16 h-16 bg-black/5 rounded-2xl flex items-center justify-center">
+                       <Layout className="w-8 h-8 text-black/20" />
+                    </div>
+                    <div className="w-full h-3 bg-black/5 rounded-full" />
+                    <div className="w-2/3 h-3 bg-black/5 rounded-full" />
+                  </motion.div>
+
+                  {/* The Main Cut Shape Container */}
+                  <div className="relative w-full h-full z-10">
+                    <svg width="0" height="0" className="absolute">
+                      <defs>
+                        <clipPath id="heroClip" clipPathUnits="objectBoundingBox">
+                          {/* A stepped shape: low on top-left, high on top-right */}
+                          <path d="M 0,0.25 
+                                   C 0,0.15 0.1,0.1 0.2,0.1 
+                                   L 0.4,0.1 
+                                   C 0.45,0.1 0.5,0.05 0.5,0 
+                                   L 0.8,0 
+                                   C 0.9,0 1,0.1 1,0.2 
+                                   L 1,0.8 
+                                   C 1,0.9 0.9,1 0.8,1 
+                                   L 0.2,1 
+                                   C 0.1,1 0,0.9 0,0.8 
+                                   Z" />
+                        </clipPath>
+                      </defs>
+                    </svg>
+
+                    <div 
+                      className="w-full h-full bg-[var(--card-bg)] border border-[var(--border-color)] shadow-2xl overflow-hidden"
+                      style={{ clipPath: 'url(#heroClip)' }}
+                    >
+                      <img 
+                        src="https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800" 
+                        alt="Professional Somali Businessman"
+                        className="w-full h-full object-cover grayscale-[0.2] hover:scale-105 transition-transform duration-700"
+                        referrerPolicy="no-referrer"
+                      />
+                      
+                      {/* Logo Mockup overlay */}
+                      <div className="absolute bottom-10 left-10 p-3 bg-white/90 rounded-xl shadow-xl z-10 flex items-center gap-2 border border-black/5">
+                        <div className="w-8 h-8 bg-[#0066ff] rounded flex items-center justify-center text-white font-black text-lg italic">H</div>
+                        <div className="font-heading font-black text-slate-800 tracking-tighter">Hanwang</div>
                       </div>
-
-                      {/* Tool Categories Mockup */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="p-6 bg-white/5 rounded-3xl border border-primary/20 flex flex-col items-center text-center group/card transition-all">
-                          <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
-                            <Type className="w-6 h-6 text-primary" />
-                          </div>
-                          <span className="font-black text-white text-[10px] uppercase tracking-widest">Writing</span>
-                        </div>
-                        <div className="p-6 bg-white/5 rounded-3xl border border-primary/20 flex flex-col items-center text-center transition-all">
-                          <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center mb-4 border border-primary/20">
-                            <Palette className="w-6 h-6 text-primary" />
-                          </div>
-                          <span className="font-black text-white text-[10px] uppercase tracking-widest">Design</span>
-                        </div>
-                      </div>
-
-                      {/* Processing Bar Mockup */}
-                      <div className="space-y-4">
-                        <div className="flex justify-between items-end">
-                           <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest animate-pulse">Processing...</span>
-                           <span className="text-[10px] font-black text-primary uppercase tracking-widest">34%</span>
-                        </div>
-                        <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden p-0.5 border border-white/5">
-                          <div className="w-[34%] h-full bg-primary rounded-full shadow-[0_0_15px_rgba(0,255,120,0.8)]" />
-                        </div>
-                      </div>
-
-                      {/* Steps List Mockup */}
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <div className="w-5 h-5 rounded-full bg-primary flex items-center justify-center shadow-[0_0_10px_rgba(0,255,120,0.4)]">
-                            <CheckCircle2 className="w-3 h-3 text-black" />
-                          </div>
-                          <span className="text-[10px] font-black text-primary uppercase tracking-widest">Completed</span>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <div className="w-5 h-5 rounded-full border-2 border-primary/40 animate-pulse" />
-                          <span className="text-[10px] font-black text-white uppercase tracking-widest">Active</span>
-                        </div>
+                      
+                      {/* Overlay Info Box (optional, like 'Our Creator's' in image 1) */}
+                      <div className="absolute top-1/2 right-4 -translate-y-1/2 p-4 bg-white/10 backdrop-blur-md rounded-2xl border border-white/10 shadow-xl hidden sm:block">
+                         <div className="text-[10px] font-black text-white/60 uppercase tracking-widest mb-2">Our Community</div>
+                         <div className="flex -space-x-2">
+                           {[1,2,3,4].map(i => (
+                             <div key={i} className="w-8 h-8 rounded-full border-2 border-primary bg-slate-800" />
+                           ))}
+                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-
-                {/* Floating "AI MAGIC" Pill */}
-                <motion.div 
-                  animate={{ y: [0, -10, 0] }}
-                  transition={{ duration: 4, repeat: Infinity }}
-                  className="absolute -top-6 -left-6 px-5 py-2 bg-black border border-white/10 rounded-full shadow-2xl z-20 flex items-center gap-2"
-                >
-                  <Zap className="w-4 h-4 text-primary" />
-                  <span className="text-[10px] font-black text-white uppercase tracking-widest">AI MAGIC ENABLED</span>
-                </motion.div>
               </motion.div>
             </div>
           </div>
         </section>
 
         {/* Trusted By Section (Logo Cloud) */}
-        <section className="py-20 border-t border-white/5 bg-[#0b0d11]">
+        <section className="py-20 border-t border-[var(--border-color)] bg-[var(--bg-color)]">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
              <p className="text-sm font-black text-slate-500 uppercase tracking-[0.2em] mb-12">Trusted & Rated By 1,000+ Teams Globally</p>
-             <div className="flex flex-wrap justify-center items-center gap-x-16 gap-y-10 opacity-50 contrast-0 invert">
+             <div className="flex flex-wrap justify-center items-center gap-x-16 gap-y-10 opacity-40 grayscale">
                 <div className="flex items-center gap-2">
                    <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center text-white font-bold">S</div>
-                   <span className="font-heading font-black text-xl tracking-tight text-white">SchedulePress</span>
+                   <span className="font-heading font-black text-xl tracking-tight text-[var(--text-color)]">SchedulePress</span>
                 </div>
                 <div className="flex items-center gap-2">
                    <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center text-white font-bold">T</div>
-                   <span className="font-heading font-black text-xl tracking-tight text-white">templately</span>
+                   <span className="font-heading font-black text-xl tracking-tight text-[var(--text-color)]">templately</span>
                 </div>
                 <div className="flex items-center gap-2">
                    <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-white font-bold">E</div>
-                   <span className="font-heading font-black text-xl tracking-tight text-white">easy.jobs</span>
+                   <span className="font-heading font-black text-xl tracking-tight text-[var(--text-color)]">easy.jobs</span>
                 </div>
                 <div className="flex items-center gap-2">
                    <div className="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center text-white font-bold">N</div>
-                   <span className="font-heading font-black text-xl tracking-tight text-white">NotificationX</span>
+                   <span className="font-heading font-black text-xl tracking-tight text-[var(--text-color)]">NotificationX</span>
                 </div>
              </div>
           </div>
         </section>
 
         {/* Tools Showcase */}
-        <section id="tools" className="py-32 relative">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#0b0d11] via-[#161a22] to-[#0b0d11]" />
+        <section id="tools" className="py-32 relative overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-b from-[var(--bg-color)] via-[var(--card-bg)] to-[var(--bg-color)] opacity-50" />
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="text-center mb-24">
               <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 border border-primary/20 rounded-2xl mb-6">
                 <span className="text-xs font-black text-primary uppercase tracking-[0.2em]">POWERFUL TOOLS</span>
               </div>
-              <h2 className="font-heading text-4xl sm:text-5xl font-black text-white mb-6">Agab xooggan oo farahaaga ku jira</h2>
+              <h2 className="font-heading text-4xl sm:text-5xl font-black text-[var(--text-color)] mb-6">Agab xooggan oo farahaaga ku jira</h2>
               <p className="text-slate-400 max-w-xl mx-auto font-medium">Guji qalab kasta oo hoos ku yaal si aad isla markiiba u isticmaasho. Shaqadaada ku fududee agabka AI-ga ugu casrisan.</p>
             </div>
             
@@ -2100,7 +2255,7 @@ export default function App() {
                     onClick={() => setActiveTool(tool)}
                     className="group relative cursor-pointer pt-12"
                   >
-                    <div className="relative bg-[#161a22] rounded-[2.5rem] p-10 pt-16 shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-primary/10 group-hover:border-primary/60 transition-all duration-500 min-h-[380px] flex flex-col items-center">
+                    <div className="relative bg-[var(--card-bg)] rounded-[2.5rem] p-10 pt-16 shadow-[0_30px_60px_rgba(0,0,0,0.4)] border border-primary/10 group-hover:border-primary/60 transition-all duration-500 min-h-[380px] flex flex-col items-center">
                       
                       {/* Floating Step Badge */}
                       <div className={`absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 rounded-[2rem] bg-gradient-to-br ${theme.gradient} flex items-center justify-center p-0.5 ${theme.glow} group-hover:scale-110 group-hover:rotate-6 transition-transform duration-500 z-10 shadow-2xl border border-primary/20`}>
@@ -2117,7 +2272,7 @@ export default function App() {
                       </div>
 
                       <div className="text-center space-y-4 flex-1 flex flex-col justify-center mt-6">
-                        <h3 className="text-white font-black text-2xl leading-tight uppercase tracking-widest group-hover:text-primary transition-colors">
+                        <h3 className="text-[var(--text-color)] font-black text-2xl leading-tight uppercase tracking-widest group-hover:text-primary transition-colors">
                           {tool.name}
                         </h3>
                         <p className="text-slate-400 text-sm leading-relaxed font-bold">
@@ -2126,7 +2281,7 @@ export default function App() {
                       </div>
 
                       <div className="mt-10">
-                        <div className={`px-10 py-4 rounded-[1.5rem] bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] group-hover:bg-primary group-hover:text-black group-hover:shadow-[0_0_30px_rgba(0,255,120,0.6)] transition-all flex items-center gap-3`}>
+                       <div className={`px-10 py-4 rounded-[1.5rem] bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.3em] group-hover:bg-primary group-hover:text-black group-hover:shadow-[0_0_30px_rgba(0,255,120,0.6)] transition-all flex items-center gap-3`}>
                           Bilaw Tool <ArrowRight className="w-4 h-4" />
                         </div>
                       </div>
@@ -2142,30 +2297,30 @@ export default function App() {
         <section id="features" className="py-20">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-16">
-              <h2 className="font-heading text-3xl font-bold text-secondary mb-4">Maxaad u dooranaysaa Dualeabditools?</h2>
+              <h2 className="font-heading text-3xl font-bold text-[var(--text-color)] mb-4">Maxaad u dooranaysaa Dualeabditools?</h2>
               <p className="text-slate-600 max-w-2xl mx-auto">Waxaan u dhisnay madashan si aad u hesho waayo-aragnimo isticmaale oo fudud iyo waxqabad sare.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="group text-center p-10 bg-[#161a22] rounded-[2.5rem] border border-white/5 hover:border-primary/30 transition-all duration-300">
+              <div className="group text-center p-10 bg-[var(--card-bg)] rounded-[2.5rem] border border-[var(--border-color)] hover:border-primary/30 transition-all duration-300">
                 <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-8 border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.1)] group-hover:scale-110 transition-transform">
                   <Zap className="w-10 h-10" />
                 </div>
-                <h3 className="font-heading text-2xl font-black text-white uppercase tracking-widest mb-4">Xawaare Sare</h3>
+                <h3 className="font-heading text-2xl font-black text-[var(--text-color)] uppercase tracking-widest mb-4">Xawaare Sare</h3>
                 <p className="text-slate-400 font-bold text-sm leading-relaxed">Agabka intooda badan waxay si toos ah ugu dhex shaqeeyaan browser-kaaga, iyagoo ku siinaya natiijooyin degdeg ah.</p>
               </div>
-              <div className="group text-center p-10 bg-[#161a22] rounded-[2.5rem] border border-white/5 hover:border-primary/30 transition-all duration-300">
+              <div className="group text-center p-10 bg-[var(--card-bg)] rounded-[2.5rem] border border-[var(--border-color)] hover:border-primary/30 transition-all duration-300">
                 <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-8 border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.1)] group-hover:scale-110 transition-transform">
                   <Shield className="w-10 h-10" />
                 </div>
-                <h3 className="font-heading text-2xl font-black text-white uppercase tracking-widest mb-4">Ammaanka Xogta</h3>
+                <h3 className="font-heading text-2xl font-black text-[var(--text-color)] uppercase tracking-widest mb-4">Ammaanka Xogta</h3>
                 <p className="text-slate-400 font-bold text-sm leading-relaxed">Xogtaadu waa ammaan. Ma kaydinno qoraalkaaga ama faylashaada ka dib markaan dhammaystirno shaqada.</p>
               </div>
-              <div className="group text-center p-10 bg-[#161a22] rounded-[2.5rem] border border-white/5 hover:border-primary/30 transition-all duration-300">
+              <div className="group text-center p-10 bg-[var(--card-bg)] rounded-[2.5rem] border border-[var(--border-color)] hover:border-primary/30 transition-all duration-300">
                 <div className="w-20 h-20 bg-primary/10 text-primary rounded-3xl flex items-center justify-center mx-auto mb-8 border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.1)] group-hover:scale-110 transition-transform">
                   <Globe className="w-10 h-10" />
                 </div>
-                <h3 className="font-heading text-2xl font-black text-white uppercase tracking-widest mb-4">Meel walba laga heli karaa</h3>
+                <h3 className="font-heading text-2xl font-black text-[var(--text-color)] uppercase tracking-widest mb-4">Meel walba laga heli karaa</h3>
                 <p className="text-slate-400 font-bold text-sm leading-relaxed">Wuxuu si fiican ugu shaqeeyaa computer-ka, tablet-ka, iyo mobile-ka. Looma baahna in la rakibo.</p>
               </div>
             </div>
@@ -2175,14 +2330,14 @@ export default function App() {
         {/* Pricing Section Removed */}
 
         {/* Testimonials */}
-        <section className="py-20 bg-secondary text-white relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -mr-32 -mt-32"></div>
-          <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/10 rounded-full blur-3xl -ml-32 -mb-32"></div>
+        <section className="py-20 bg-[var(--card-bg)] text-[var(--text-color)] relative overflow-hidden transition-colors border-y border-[var(--border-color)]">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32"></div>
+          <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -ml-32 -mb-32"></div>
           
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
             <div className="text-center mb-16">
-              <h2 className="font-heading text-3xl font-bold mb-4">Waxaa ku kalsoon dadka xirfadlayaasha ah</h2>
-              <p className="text-slate-400 max-w-2xl mx-auto">Eeg waxa ay dadka isticmaala agabkayaga ka yiraahdeen.</p>
+              <h2 className="font-heading text-3xl font-bold text-[var(--text-color)] mb-4">Waxaa ku kalsoon dadka xirfadlayaasha ah</h2>
+              <p className="text-slate-500 max-w-2xl mx-auto">Eeg waxa ay dadka isticmaala agabkayaga ka yiraahdeen.</p>
             </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -2191,14 +2346,19 @@ export default function App() {
                 { name: "Dahir Ali", role: "Student", text: "Sawir u beddel qoraalka waa mid aad u saxan. Waxay iga caawisay inaan dhammaan qoraalladaydii gacanta u beddelo digital." },
                 { name: "Emily Rodriguez", role: "Marketing Manager", text: "Waa mid nadiif ah, degdeg ah, mana laha xayeysiisyo dhib leh. Dhab ahaan waa waxa loo baahan yahay." }
               ].map((testimonial, i) => (
-                <div key={i} className="bg-white/5 backdrop-blur-sm p-6 rounded-2xl border border-white/10 hover:border-primary/50 transition-colors">
-                  <div className="flex text-primary mb-4">
+                <div key={i} className="bg-[var(--bg-color)] backdrop-blur-sm p-8 rounded-[2rem] border border-[var(--border-color)] hover:border-primary/50 transition-all shadow-xl group">
+                  <div className="flex text-primary mb-4 group-hover:scale-110 transition-transform origin-left">
                     {[...Array(5)].map((_, j) => <Star key={j} className="w-4 h-4 fill-current" />)}
                   </div>
-                  <p className="text-slate-300 mb-6">"{testimonial.text}"</p>
-                  <div>
-                    <div className="font-semibold text-white">{testimonial.name}</div>
-                    <div className="text-sm text-slate-400">{testimonial.role}</div>
+                  <p className="text-slate-500 mb-6 font-medium leading-relaxed italic">"{testimonial.text}"</p>
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center text-primary font-black">
+                      {testimonial.name[0]}
+                    </div>
+                    <div>
+                      <div className="font-bold text-[var(--text-color)]">{testimonial.name}</div>
+                      <div className="text-xs text-slate-400 font-bold uppercase tracking-widest">{testimonial.role}</div>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -2215,12 +2375,12 @@ export default function App() {
             
             <div className="space-y-6">
               {faqs.map((faq, index) => (
-                <div key={index} className="border border-white/5 rounded-[2rem] overflow-hidden shadow-2xl bg-[#161a22]">
+                <div key={index} className="border border-[var(--border-color)] rounded-[2rem] overflow-hidden shadow-2xl bg-[var(--card-bg)]">
                   <button 
                     className="w-full px-8 py-6 text-left flex justify-between items-center hover:bg-white/5 transition-all group"
                     onClick={() => setActiveFaq(activeFaq === index ? null : index)}
                   >
-                    <span className="font-black text-white uppercase tracking-widest text-sm group-hover:text-primary transition-colors">{faq.q}</span>
+                    <span className="font-black text-[var(--text-color)] uppercase tracking-widest text-sm group-hover:text-primary transition-colors">{faq.q}</span>
                     {activeFaq === index ? <ChevronUp className="w-6 h-6 text-primary" /> : <ChevronDown className="w-6 h-6 text-slate-500" />}
                   </button>
                   <AnimatePresence>
@@ -2230,7 +2390,7 @@ export default function App() {
                         animate={{ height: 'auto', opacity: 1 }}
                         exit={{ height: 0, opacity: 0 }}
                       >
-                        <div className="px-8 pb-8 pt-2 text-slate-400 font-bold bg-[#161a22] border-t border-white/5 leading-relaxed">
+                        <div className="px-8 pb-8 pt-2 text-slate-500 font-bold bg-black/5 border-t border-[var(--border-color)] leading-relaxed">
                           {faq.a}
                         </div>
                       </motion.div>
@@ -2244,22 +2404,22 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="bg-secondary border-t border-white/5 py-24">
+      <footer className="bg-[var(--bg-color)] border-t border-[var(--border-color)] py-24">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-16 mb-20">
             <div className="col-span-1 md:col-span-1 space-y-6">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-black">
+                <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center text-[var(--btn-text)]">
                   <FileText className="w-5 h-5" />
                 </div>
-                <span className="font-heading font-black text-xl text-white">Dualeaditools</span>
+                <h4 className="font-heading font-black text-xl text-[var(--text-color)]">Dualeaditools</h4>
               </div>
               <p className="text-slate-500 text-sm leading-relaxed">
                 Empowering content creators and affiliate marketers with high-performance AI tools.
               </p>
             </div>
             <div>
-              <h4 className="text-white font-black text-sm uppercase tracking-widest mb-8">Platform</h4>
+              <h4 className="text-[var(--text-color)] font-black text-sm uppercase tracking-widest mb-8">Platform</h4>
               <ul className="space-y-4 text-slate-500 text-sm font-bold">
                 <li><a href="#tools" className="hover:text-primary transition-colors">AI Tools</a></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Pricing</a></li>
@@ -2267,7 +2427,7 @@ export default function App() {
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-black text-sm uppercase tracking-widest mb-8">Company</h4>
+              <h4 className="text-[var(--text-color)] font-black text-sm uppercase tracking-widest mb-8">Company</h4>
               <ul className="space-y-4 text-slate-500 text-sm font-bold">
                 <li><a href="#" className="hover:text-primary transition-colors">About Us</a></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Blog</a></li>
@@ -2275,7 +2435,7 @@ export default function App() {
               </ul>
             </div>
             <div>
-              <h4 className="text-white font-black text-sm uppercase tracking-widest mb-8">Support</h4>
+              <h4 className="text-[var(--text-color)] font-black text-sm uppercase tracking-widest mb-8">Support</h4>
               <ul className="space-y-4 text-slate-500 text-sm font-bold">
                 <li><a href="#" className="hover:text-primary transition-colors">Help Center</a></li>
                 <li><a href="#" className="hover:text-primary transition-colors">Contact Us</a></li>
@@ -2283,7 +2443,7 @@ export default function App() {
               </ul>
             </div>
           </div>
-          <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-10 border-t border-white/5">
+              <div className="flex flex-col md:flex-row justify-between items-center gap-6 pt-10 border-t border-[var(--border-color)]">
             <div className="text-sm text-slate-500 font-bold">
               &copy; {new Date().getFullYear()} Dualeaditools. Built for performance.
             </div>
@@ -2305,33 +2465,33 @@ export default function App() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setActiveTool(null)}
-              className="absolute inset-0 bg-secondary/60 backdrop-blur-sm"
+              className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
             <motion.div 
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
-              className="relative w-full max-w-3xl bg-[#0b0d11] rounded-[2.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col max-h-[90vh] border border-white/5"
+              className="relative w-full max-w-3xl bg-[var(--bg-color)] rounded-[2.5rem] shadow-[0_40px_100px_rgba(0,0,0,0.8)] overflow-hidden flex flex-col max-h-[90vh] border border-[var(--border-color)]"
             >
-              <div className="flex items-center justify-between p-6 sm:p-10 border-b border-white/5 bg-[#161a22]">
+              <div className="flex items-center justify-between p-6 sm:p-10 border-b border-[var(--border-color)] bg-[var(--card-bg)]">
                 <div className="flex items-center gap-6">
                   <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary border border-primary/20 shadow-[0_0_20px_rgba(0,255,120,0.1)]">
                     <activeTool.icon className="w-8 h-8" />
                   </div>
                   <div>
-                    <h2 className="font-heading text-2xl font-black text-white uppercase tracking-widest">{activeTool.name}</h2>
+                    <h2 className="font-heading text-2xl font-black text-[var(--text-color)] uppercase tracking-widest">{activeTool.name}</h2>
                     <p className="text-sm text-slate-500 font-bold hidden sm:block mt-1">{activeTool.description}</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => setActiveTool(null)}
-                  className="p-3 text-slate-500 hover:text-white hover:bg-white/5 rounded-full transition-all"
+                  className="p-3 text-slate-500 hover:text-[var(--text-color)] hover:bg-black/5 rounded-full transition-all"
                 >
                   <X className="w-8 h-8" />
                 </button>
               </div>
               
-              <div className="p-6 sm:p-10 overflow-y-auto custom-scrollbar bg-[#0b0d11]">
+              <div className="p-6 sm:p-10 overflow-y-auto custom-scrollbar bg-[var(--bg-color)]">
                 <activeTool.component />
               </div>
             </motion.div>
