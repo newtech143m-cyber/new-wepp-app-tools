@@ -85,6 +85,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // New user initialization
             const initialData = {
               email: user.email || '',
+              username: user.displayName || '',
               credits: 5,
               tier: 'free',
               createdAt: serverTimestamp(),

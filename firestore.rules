@@ -32,6 +32,7 @@ service cloud.firestore {
     function isValidUser(data) {
       return data.keys().hasAll(['email', 'credits', 'tier', 'createdAt']) &&
              data.email is string &&
+             (!('username' in data) || data.username is string) &&
              data.credits is int &&
              data.tier in ['free', 'pro', 'max'] &&
              data.createdAt is timestamp &&

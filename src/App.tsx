@@ -40,7 +40,7 @@ import {
 import { GoogleGenAI } from '@google/genai';
 import * as XLSX from 'xlsx';
 import { useAuth } from './contexts/AuthContext';
-import { auth, signInWithPopup, signOut, googleProvider } from './lib/firebase';
+import { auth, signInWithPopup, signOut, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from './lib/firebase';
 
 // --- UI Components ---
 const CreditWallet = () => {
@@ -1119,6 +1119,210 @@ const tools = [
   }
 ];
 
+// --- Auth Components ---
+const AuthModal = ({ isOpen, onClose, initialMode = 'login' }: { isOpen: boolean, onClose: () => void, initialMode?: 'login' | 'signup' }) => {
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>(initialMode);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const { loading: authLoading } = useAuth();
+
+  const handleManualLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) return;
+    setIsAuthLoading(true);
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      onClose();
+    } catch (error: any) {
+      console.error('Email login error:', error);
+      let message = 'Cillad ayaa dhacday markii aad isku dayday inaad gasho.';
+      if (error.code === 'auth/user-not-found') message = 'Email-kan laguma helin xogta.';
+      else if (error.code === 'auth/wrong-password') message = 'Password-kaagu waa khalad.';
+      else if (error.code === 'auth/invalid-email') message = 'Email-ka aad gelisay ma saxna.';
+      else if (error.code === 'auth/popup-blocked') message = 'Popup-ka ayaa la xiray.';
+      alert(message);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleManualSignup = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password || !username) {
+      alert('Fadlan buuxi dhammaan meelaha banaan.');
+      return;
+    }
+    setIsAuthLoading(true);
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      await updateProfile(userCredential.user, { displayName: username });
+      onClose();
+    } catch (error: any) {
+      console.error('Email signup error:', error);
+      let message = 'Cillad ayaa dhacday markii aad is diiwaangelinaysay.';
+      if (error.code === 'auth/email-already-in-use') message = 'Email-kan horey ayaa loo isticmaalay.';
+      else if (error.code === 'auth/weak-password') message = 'Password-kaagu waa inuu ugu yaraan ka koobnaadaa 6 xaraf.';
+      alert(message);
+    } finally {
+      setIsAuthLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+      onClose();
+    } catch (error: any) {
+      console.error('Login error:', error);
+      if (error.code === 'auth/popup-blocked') {
+        alert('Popup-ka ayaa la xiray. Fadlan u oggolow browser-kaaga inuu furo popup-ka si aad u gasho.');
+      } else if (error.code === 'auth/cancelled-popup-request') {
+        // User closed the popup
+      } else {
+        alert('Cillad ayaa dhacday markii la isku dayay in la is diiwaangeliyo. Fadlan hubi in internet-kaagu sax yahay ama mar kale isku day.');
+      }
+    }
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-secondary/80 backdrop-blur-md"
+      />
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95, y: 20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 20 }}
+        className="relative w-full max-w-md bg-white rounded-3xl shadow-2xl overflow-hidden p-8"
+      >
+        <button 
+          onClick={onClose}
+          className="absolute top-4 right-4 p-2 text-slate-400 hover:text-secondary hover:bg-slate-100 rounded-full transition-colors"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <div className="flex flex-col items-center w-full">
+          <div className="w-16 h-16 bg-primary-light/30 text-primary rounded-2xl flex items-center justify-center mb-6">
+            <Lock className="w-8 h-8" />
+          </div>
+          
+          <div className="text-center mb-8">
+            <h3 className="font-heading text-2xl font-bold text-secondary mb-2">
+              {authMode === 'login' ? 'Ku Soo Gal' : 'Is Diiwaangeli'}
+            </h3>
+            <p className="text-slate-500 text-sm">
+              {authMode === 'login' 
+                ? 'Geli xogtaada si aad u sii waddo isticmaalka agabka AI-ga.' 
+                : 'Abuur account cusub si aad u hesho 5 credits oo bilaash ah.'}
+            </p>
+          </div>
+
+          <form onSubmit={authMode === 'login' ? handleManualLogin : handleManualSignup} className="w-full space-y-4">
+            {authMode === 'signup' && (
+              <div className="space-y-1.5">
+                <label className="text-xs font-bold text-slate-500 uppercase ml-1">Magaca (Username)</label>
+                <div className="relative">
+                  <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                  <input 
+                    type="text" 
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Geli magacaaga"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+            
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Email</label>
+              <div className="relative">
+                <Type className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="email" 
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="tusaale@gmail.com"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-slate-500 uppercase ml-1">Password</label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <input 
+                  type="password" 
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all text-secondary"
+                  required
+                  minLength={6}
+                />
+              </div>
+            </div>
+
+            <button 
+              type="submit"
+              disabled={isAuthLoading || authLoading}
+              className="w-full py-4 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all shadow-lg shadow-primary/20 disabled:opacity-50"
+            >
+              {isAuthLoading ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Waa lala socdaa...</span>
+                </div>
+              ) : (
+                <span>{authMode === 'login' ? 'Soo Gal' : 'Abuur Account'}</span>
+              )}
+            </button>
+          </form>
+
+          <div className="w-full flex items-center gap-4 my-8">
+            <div className="flex-1 h-px bg-slate-100" />
+            <span className="text-xs font-bold text-slate-400 uppercase">Ama</span>
+            <div className="flex-1 h-px bg-slate-100" />
+          </div>
+
+          <button 
+            onClick={handleGoogleLogin}
+            disabled={isAuthLoading || authLoading}
+            className="w-full flex items-center justify-center gap-3 py-4 bg-white border border-slate-200 hover:border-primary hover:bg-slate-50 text-secondary rounded-xl font-bold transition-all active:scale-[0.98]"
+          >
+            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
+            <span>Google Ku Soo Gal</span>
+          </button>
+
+          <div className="mt-8 text-center">
+            <p className="text-sm text-slate-500">
+              {authMode === 'login' ? 'Account ma haysatid?' : 'Account horey ma u lahayd?'}
+              <button 
+                onClick={() => setAuthMode(authMode === 'login' ? 'signup' : 'login')}
+                className="ml-2 text-primary font-bold hover:underline"
+              >
+                {authMode === 'login' ? 'Is diiwaangeli' : 'Soo gal'}
+              </button>
+            </p>
+          </div>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
+
 // --- Main Application ---
 
 export default function App() {
@@ -1134,19 +1338,12 @@ export default function App() {
     { q: "Ma u baahanahay inaan account furtay?", a: "Haa, si aad u isticmaasho agabka AI-ga (sida sawir u beddel qoraal), waxaad u baahan tahay inaad ku soo gasho Google account-kaaga." }
   ];
 
-  const handleLogin = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error: any) {
-      console.error('Login error:', error);
-      if (error.code === 'auth/popup-blocked') {
-        alert('Popup-ka ayaa la xiray. Fadlan u oggolow browser-kaaga inuu furo popup-ka si aad u gasho.');
-      } else if (error.code === 'auth/cancelled-popup-request') {
-        // User closed the popup, no need for alert
-      } else {
-        alert('Cillad ayaa dhacday markii la isku dayay in la is diiwaangeliyo. Fadlan hubi in internet-kaagu sax yahay ama mar kale isku day.');
-      }
-    }
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<'login' | 'signup'>('login');
+
+  const openAuth = (mode: 'login' | 'signup' = 'login') => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
   };
 
   const handleLogout = async () => {
@@ -1198,12 +1395,12 @@ export default function App() {
                 </div>
               ) : (
                 <button 
-                  onClick={handleLogin}
+                  onClick={() => openAuth('login')}
                   disabled={authLoading}
                   className="flex items-center gap-2 px-5 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl text-sm font-bold transition-all shadow-md hover:shadow-primary/20 active:scale-95"
                 >
-                  <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 brightness-0 invert" />
-                  <span>Google Login</span>
+                  <LogIn className="w-4 h-4" />
+                  <span>Ku Soo Gal</span>
                 </button>
               )}
             </div>
@@ -1237,7 +1434,7 @@ export default function App() {
                     <button onClick={handleLogout} className="text-rose-500 font-medium text-sm">Logout</button>
                   </div>
                 ) : (
-                  <button onClick={handleLogin} className="w-full text-left px-3 py-2 text-primary font-medium">Login</button>
+                  <button onClick={() => openAuth('login')} className="w-full text-left px-3 py-2 text-primary font-medium">Login</button>
                 )}
               </div>
             </motion.div>
@@ -1390,7 +1587,7 @@ export default function App() {
                   </li>
                 </ul>
                 <button 
-                  onClick={!user ? handleLogin : undefined}
+                  onClick={!user ? () => openAuth('login') : undefined}
                   className="w-full py-3 px-4 bg-slate-100 text-secondary font-bold rounded-xl hover:bg-slate-200 transition-colors"
                 >
                   {!user ? 'Soo gal si aad u isticmaasho' : (userData?.tier === 'free' ? 'Qorshahaagu waa kan' : 'Back to Free')}
@@ -1417,7 +1614,7 @@ export default function App() {
                   </li>
                 </ul>
                 <button 
-                  onClick={!user ? handleLogin : undefined}
+                  onClick={!user ? () => openAuth('signup') : undefined}
                   className="w-full py-3 px-4 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-lg"
                 >
                   {!user ? 'Login & Upgrade' : (userData?.tier === 'pro' ? 'Hadda waad isticmaalaysaa' : 'Hadda Isku Day')}
@@ -1444,7 +1641,7 @@ export default function App() {
                   </li>
                 </ul>
                 <button 
-                  onClick={!user ? handleLogin : undefined}
+                  onClick={!user ? () => openAuth('signup') : undefined}
                   className="w-full py-3 px-4 bg-secondary text-white font-bold rounded-xl hover:bg-slate-800 transition-colors"
                 >
                   {!user ? 'Login & Be Max' : (userData?.tier === 'max' || isAdmin ? 'Hadda waad isticmaalaysaa' : 'Noqo Max')}
@@ -1584,32 +1781,44 @@ export default function App() {
                 {(user || trialCount < 2) ? (
                   <activeTool.component />
                 ) : (
-                  <div className="py-12 flex flex-col items-center text-center space-y-6">
-                    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center text-slate-400">
+                  <div className="py-12 flex flex-col items-center text-center space-y-8">
+                    <div className="w-20 h-20 bg-primary-light/20 text-primary rounded-3xl flex items-center justify-center">
                       <Lock className="w-10 h-10" />
                     </div>
                     <div className="max-w-md">
-                      <h3 className="font-heading text-2xl font-bold text-secondary mb-2">Login Baa Loo Baahan Yahay</h3>
-                      <p className="text-slate-600">
-                        Hambalyo! Waxaad isticmaashay 2-dii isku day ee bilaashka ahaa. Si aad u sii waddo isticmaalka agabkan iyo credits-kaaga maalinlaha ah, fadlan Google account-kaaga ku soo gal.
+                      <h3 className="font-heading text-2xl font-bold text-secondary mb-3">Login Baa Loo Baahan Yahay</h3>
+                      <p className="text-slate-600 leading-relaxed">
+                        Hambalyo! Waxaad isticmaashay 2-dii isku day ee bilaashka ahaa. Si aad u sii waddo isticmaalka agabkan AI-ga ah iyo credits-kaaga maalinlaha ah, fadlan soo gal.
                       </p>
                     </div>
-                    <button 
-                      onClick={handleLogin}
-                      disabled={authLoading}
-                      className="flex items-center gap-3 px-10 py-5 bg-white border-2 border-slate-200 hover:border-primary hover:bg-slate-50 text-secondary rounded-2xl font-bold transition-all shadow-lg hover:shadow-xl group"
-                    >
-                      <img src="https://www.google.com/favicon.ico" alt="Google" className="w-6 h-6 grayscale group-hover:grayscale-0 transition-all" />
-                      <span>Google Ku Soo Gal (Sign in with Google)</span>
-                    </button>
-                    <p className="text-xs text-slate-400">
-                      Ma jirto wax lacag ah oo hadda lagaa rabo.
-                    </p>
+                    <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+                      <button 
+                         onClick={() => openAuth('login')}
+                         className="flex-1 max-w-[200px] flex items-center justify-center gap-2 px-8 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-bold transition-all shadow-lg hover:shadow-primary/30"
+                      >
+                        <LogIn className="w-5 h-5" /> Soo Gal
+                      </button>
+                      <button 
+                        onClick={() => openAuth('signup')}
+                        className="flex-1 max-w-[200px] flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-slate-200 hover:border-primary text-secondary rounded-2xl font-bold transition-all"
+                      >
+                        <UserIcon className="w-5 h-5" /> Is Diiwaangeli
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {isAuthModalOpen && (
+          <AuthModal 
+            isOpen={isAuthModalOpen} 
+            onClose={() => setIsAuthModalOpen(false)} 
+            initialMode={authModalMode} 
+          />
         )}
       </AnimatePresence>
     </div>
