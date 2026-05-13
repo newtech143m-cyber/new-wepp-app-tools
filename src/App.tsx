@@ -56,34 +56,21 @@ const playCompleteSound = () => {
 
 const ProcessingAnimation = ({ toolName, icon: Icon }: { toolName: string, icon: any }) => {
   const [progress, setProgress] = useState(0);
-  const [status, setStatus] = useState('DIYAARINAYA...');
 
-  const statusMessages = [
-    { p: 0, m: 'AKHRINAYA FAYLKA...' },
-    { p: 30, m: 'FALANQAYNAYA...' },
-    { p: 55, m: 'DHISAYA DUKUMIINTIGA...' },
-    { p: 80, m: 'QAABAYNAYA...' },
-    { p: 95, m: 'DHAMMAAYSTIRAYAA...' },
-    { p: 100, m: 'WAAD KU GUULAYSATAY!' },
+  const steps = [
+    { label: 'Reading file...', min: 0 },
+    { label: 'Processing data...', min: 30 },
+    { label: 'Finalizing...', min: 70 },
   ];
 
   useEffect(() => {
-    const duration = 2400;
+    const duration = 3000;
     const startTime = Date.now();
 
     const interval = setInterval(() => {
       const elapsed = Date.now() - startTime;
       const p = Math.min(elapsed / duration, 1);
-      const val = Math.round(p * 100);
-      setProgress(val);
-
-      for (let i = statusMessages.length - 1; i >= 0; i--) {
-        if (val >= statusMessages[i].p) {
-          setStatus(statusMessages[i].m);
-          break;
-        }
-      }
-
+      setProgress(Math.round(p * 100));
       if (p >= 1) clearInterval(interval);
     }, 50);
 
@@ -91,77 +78,111 @@ const ProcessingAnimation = ({ toolName, icon: Icon }: { toolName: string, icon:
   }, []);
 
   return (
-    <div className="relative font-mono overflow-hidden bg-[#0a0a0f] text-[#00ff78] rounded-2xl p-8 min-h-[300px] w-full flex flex-col items-center justify-center border border-white/10">
-      {/* Background Grid */}
-      <div className="absolute inset-0 opacity-10 pointer-events-none" 
-           style={{ backgroundImage: 'linear-gradient(#00ff78 1px, transparent 1px), linear-gradient(90deg, #00ff78 1px, transparent 1px)', backgroundSize: '20px 20px' }} 
+    <div className="relative overflow-hidden bg-[#f8fafc] rounded-[2.5rem] p-8 min-h-[480px] w-full flex flex-col items-center justify-center border border-slate-200 shadow-2xl">
+      {/* Background Stripes */}
+      <div className="absolute inset-0 opacity-[0.03] pointer-events-none" 
+           style={{ 
+             backgroundImage: 'repeating-linear-gradient(45deg, #000, #000 40px, transparent 40px, transparent 80px)',
+             backgroundSize: '200% 200%'
+           }} 
       />
       
-      <div className="relative flex items-center justify-center w-full max-w-md gap-8 mb-12">
-        {/* Source Card */}
+      <div className="relative z-10 w-full max-w-sm flex flex-col items-center">
+        {/* Main Icon Card */}
         <motion.div 
-          initial={{ opacity: 1, x: 0 }}
-          animate={{ opacity: 0, x: -50, scale: 0.8 }}
-          transition={{ delay: 2.2, duration: 0.4 }}
-          className="w-24 h-32 bg-green-900/30 border-2 border-[#21a14a] rounded-lg flex flex-col items-center justify-center gap-2 shadow-[0_0_20px_rgba(33,161,74,0.3)]"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          className="w-40 h-40 bg-white rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.1)] flex items-center justify-center mb-8 relative border border-slate-50 overflow-hidden group"
         >
-          <Icon className="w-10 h-10 text-[#21a14a]" />
-          <span className="text-[8px] font-bold tracking-widest text-[#21a14a]">PROCESSING</span>
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-blue-500/5 group-hover:opacity-100 transition-opacity" />
+          <div className="relative p-6 bg-gradient-to-tr from-slate-50 to-white rounded-2xl shadow-inner border border-white">
+            <Icon className="w-20 h-20 text-green-700 drop-shadow-2xl" />
+          </div>
+          
+          {/* Animated Glow */}
+          <motion.div 
+            animate={{ 
+              scale: [1, 1.2, 1],
+              opacity: [0.1, 0.2, 0.1]
+            }}
+            transition={{ duration: 3, repeat: Infinity }}
+            className="absolute -inset-10 bg-green-400 rounded-full blur-[60px] pointer-events-none"
+          />
         </motion.div>
 
-        {/* Track */}
-        <div className="flex-1 h-1.5 bg-white/10 rounded-full relative overflow-hidden">
+        <h3 className="text-xl font-black text-slate-800 uppercase tracking-tight mb-6">
+          Processing {toolName}
+        </h3>
+
+        {/* Progress Bar Container */}
+        <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden mb-4 p-0.5">
           <motion.div 
             initial={{ width: 0 }}
-            animate={{ width: '100%' }}
-            transition={{ duration: 2.4, ease: "easeInOut" }}
-            className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#21a14a] via-[#f0c020] to-[#2b5ce6]"
+            animate={{ width: `${progress}%` }}
+            className="h-full bg-green-700 rounded-full shadow-[0_0_10px_rgba(21,128,61,0.5)]"
           />
-          {/* Flying Doc */}
+        </div>
+
+        <div className="text-green-800 font-black text-xl mb-10 tracking-tight">
+          {progress}% complete
+        </div>
+
+        {/* Status Steps */}
+        <div className="w-full space-y-5 px-6">
+          {steps.map((step, idx) => {
+            const isCompleted = progress > step.min + 20;
+            const isActive = progress >= step.min && progress < step.min + 20;
+
+            return (
+              <div key={idx} className={`flex items-center gap-5 transition-all duration-700 ${!isActive && !isCompleted ? 'opacity-30 scale-95' : 'opacity-100 scale-100'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 transition-all duration-500 ${
+                  isCompleted ? 'bg-green-600 border-green-600 shadow-[0_0_15px_rgba(22,163,74,0.4)]' : 
+                  isActive ? 'border-green-600' : 
+                  'border-slate-300'
+                }`}>
+                  {isCompleted ? (
+                    <CheckCircle2 className="w-5 h-5 text-white" />
+                  ) : isActive ? (
+                    <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse" />
+                  ) : (
+                    <div className="w-1.5 h-1.5 bg-slate-300 rounded-full" />
+                  )}
+                </div>
+                <span className={`text-sm font-black tracking-wide ${
+                  isCompleted ? 'text-green-800' : 
+                  isActive ? 'text-slate-900' : 
+                  'text-slate-400'
+                }`}>
+                  {step.label}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Completion Overlay */}
+      <AnimatePresence>
+        {progress === 100 && (
           <motion.div 
-            initial={{ left: 0, opacity: 0 }}
-            animate={{ left: '100%', opacity: [0, 1, 1, 0] }}
-            transition={{ duration: 2.4, ease: "easeInOut" }}
-            className="absolute top-1/2 -translate-y-1/2 text-xl"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0 }}
+            className="absolute inset-0 bg-white/95 backdrop-blur-xl z-20 flex flex-col items-center justify-center p-8 text-center"
           >
-            📄
+            <motion.div
+              initial={{ scale: 0, rotate: -45 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: 'spring', stiffness: 200, damping: 15 }}
+              className="w-32 h-32 bg-green-100 rounded-full flex items-center justify-center mb-8 shadow-2xl relative border-4 border-white"
+            >
+              <CheckCircle2 className="w-20 h-20 text-green-600" />
+            </motion.div>
+            <h4 className="text-3xl font-black text-slate-900 mb-3 uppercase tracking-tighter">SUCCESSFUL!</h4>
+            <p className="text-slate-500 font-bold max-w-[200px]">Your file is processed and ready.</p>
           </motion.div>
-        </div>
-
-        {/* target Card */}
-        <motion.div 
-          initial={{ opacity: 0, x: 50, scale: 0.8 }}
-          animate={{ opacity: 1, x: 0, scale: 1 }}
-          transition={{ delay: 2.2, duration: 0.4 }}
-          className="w-24 h-32 bg-blue-900/30 border-2 border-[#2b5ce6] rounded-lg flex flex-col items-center justify-center gap-2 shadow-[0_0_20px_rgba(43,92,230,0.3)]"
-        >
-          <CheckCircle2 className="w-10 h-10 text-[#2b5ce6]" />
-          <span className="text-[8px] font-bold tracking-widest text-[#2b5ce6]">COMPLETE</span>
-        </motion.div>
-      </div>
-
-      <div className="text-center space-y-4">
-        <div className="text-2xl font-bold text-[#f0c020] [text-shadow:0_0_15px_rgba(240,192,32,0.5)] tracking-[4px]">
-          {progress}%
-        </div>
-        <div className="text-[10px] text-white/40 tracking-[4px] uppercase animate-pulse">
-          {status}
-        </div>
-      </div>
-
-      {/* Completion Effect */}
-      {progress === 100 && (
-        <motion.div 
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="absolute inset-0 flex items-center justify-center bg-[#0a0a0f]/80 backdrop-blur-sm"
-        >
-          <div className="flex flex-col items-center gap-4">
-            <CheckCircle2 className="w-20 h-20 text-[#00ff78] [filter:drop-shadow(0_0_20px_#00ff78)]" />
-            <span className="text-white font-bold tracking-widest text-lg">DONE!</span>
-          </div>
-        </motion.div>
-      )}
+        )}
+      </AnimatePresence>
     </div>
   );
 };
