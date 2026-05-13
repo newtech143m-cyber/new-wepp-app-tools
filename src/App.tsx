@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Type, 
@@ -47,104 +47,139 @@ import * as XLSX from 'xlsx';
 import { useAuth } from './contexts/AuthContext';
 import { auth, signInWithPopup, signOut, googleProvider, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile } from './lib/firebase';
 
-// --- UI Components ---
-const CreditWallet = () => {
-  const { userData, isAdmin, user, trialCount } = useAuth();
-  
-  if (!user) {
-    if (trialCount >= 2) return null;
-    return (
-      <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-full">
-        <Coins className="w-3.5 h-3.5 text-slate-400" />
-        <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-          Trial: {2 - trialCount} / 2
-        </span>
-      </div>
-    );
-  }
+// --- Audio & Animations ---
+const playCompleteSound = () => {
+  const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+  audio.volume = 0.5;
+  audio.play().catch(e => console.log('Audio play failed:', e));
+};
+
+const ProcessingAnimation = ({ toolName, icon: Icon }: { toolName: string, icon: any }) => {
+  const [progress, setProgress] = useState(0);
+  const [status, setStatus] = useState('DIYAARINAYA...');
+
+  const statusMessages = [
+    { p: 0, m: 'AKHRINAYA FAYLKA...' },
+    { p: 30, m: 'FALANQAYNAYA...' },
+    { p: 55, m: 'DHISAYA DUKUMIINTIGA...' },
+    { p: 80, m: 'QAABAYNAYA...' },
+    { p: 95, m: 'DHAMMAAYSTIRAYAA...' },
+    { p: 100, m: 'WAAD KU GUULAYSATAY!' },
+  ];
+
+  useEffect(() => {
+    const duration = 2400;
+    const startTime = Date.now();
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      const p = Math.min(elapsed / duration, 1);
+      const val = Math.round(p * 100);
+      setProgress(val);
+
+      for (let i = statusMessages.length - 1; i >= 0; i--) {
+        if (val >= statusMessages[i].p) {
+          setStatus(statusMessages[i].m);
+          break;
+        }
+      }
+
+      if (p >= 1) clearInterval(interval);
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 bg-primary-light/30 border border-primary/20 rounded-full">
-      <Coins className="w-3.5 h-3.5 text-primary" />
-      <span className="text-xs font-bold text-primary-dark">
-        {isAdmin ? 'UNLIMITED' : `${userData?.credits || 0} Credits`}
-      </span>
-      <span className="text-[10px] text-slate-500 font-medium px-1.5 py-0.5 bg-white rounded-md border border-slate-200 uppercase">
-        {userData?.tier || 'Free'}
-      </span>
+    <div className="relative font-mono overflow-hidden bg-[#0a0a0f] text-[#00ff78] rounded-2xl p-8 min-h-[300px] w-full flex flex-col items-center justify-center border border-white/10">
+      {/* Background Grid */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none" 
+           style={{ backgroundImage: 'linear-gradient(#00ff78 1px, transparent 1px), linear-gradient(90deg, #00ff78 1px, transparent 1px)', backgroundSize: '20px 20px' }} 
+      />
+      
+      <div className="relative flex items-center justify-center w-full max-w-md gap-8 mb-12">
+        {/* Source Card */}
+        <motion.div 
+          initial={{ opacity: 1, x: 0 }}
+          animate={{ opacity: 0, x: -50, scale: 0.8 }}
+          transition={{ delay: 2.2, duration: 0.4 }}
+          className="w-24 h-32 bg-green-900/30 border-2 border-[#21a14a] rounded-lg flex flex-col items-center justify-center gap-2 shadow-[0_0_20px_rgba(33,161,74,0.3)]"
+        >
+          <Icon className="w-10 h-10 text-[#21a14a]" />
+          <span className="text-[8px] font-bold tracking-widest text-[#21a14a]">PROCESSING</span>
+        </motion.div>
+
+        {/* Track */}
+        <div className="flex-1 h-1.5 bg-white/10 rounded-full relative overflow-hidden">
+          <motion.div 
+            initial={{ width: 0 }}
+            animate={{ width: '100%' }}
+            transition={{ duration: 2.4, ease: "easeInOut" }}
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-[#21a14a] via-[#f0c020] to-[#2b5ce6]"
+          />
+          {/* Flying Doc */}
+          <motion.div 
+            initial={{ left: 0, opacity: 0 }}
+            animate={{ left: '100%', opacity: [0, 1, 1, 0] }}
+            transition={{ duration: 2.4, ease: "easeInOut" }}
+            className="absolute top-1/2 -translate-y-1/2 text-xl"
+          >
+            📄
+          </motion.div>
+        </div>
+
+        {/* target Card */}
+        <motion.div 
+          initial={{ opacity: 0, x: 50, scale: 0.8 }}
+          animate={{ opacity: 1, x: 0, scale: 1 }}
+          transition={{ delay: 2.2, duration: 0.4 }}
+          className="w-24 h-32 bg-blue-900/30 border-2 border-[#2b5ce6] rounded-lg flex flex-col items-center justify-center gap-2 shadow-[0_0_20px_rgba(43,92,230,0.3)]"
+        >
+          <CheckCircle2 className="w-10 h-10 text-[#2b5ce6]" />
+          <span className="text-[8px] font-bold tracking-widest text-[#2b5ce6]">COMPLETE</span>
+        </motion.div>
+      </div>
+
+      <div className="text-center space-y-4">
+        <div className="text-2xl font-bold text-[#f0c020] [text-shadow:0_0_15px_rgba(240,192,32,0.5)] tracking-[4px]">
+          {progress}%
+        </div>
+        <div className="text-[10px] text-white/40 tracking-[4px] uppercase animate-pulse">
+          {status}
+        </div>
+      </div>
+
+      {/* Completion Effect */}
+      {progress === 100 && (
+        <motion.div 
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="absolute inset-0 flex items-center justify-center bg-[#0a0a0f]/80 backdrop-blur-sm"
+        >
+          <div className="flex flex-col items-center gap-4">
+            <CheckCircle2 className="w-20 h-20 text-[#00ff78] [filter:drop-shadow(0_0_20px_#00ff78)]" />
+            <span className="text-white font-bold tracking-widest text-lg">DONE!</span>
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
+
+// --- UI Components ---
 
 // --- Tool Components ---
 
 const TextCaseConverter = () => {
   const [text, setText] = useState('');
-  return (
-    <div className="space-y-4">
-      <textarea 
-        className="w-full h-40 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none"
-        placeholder="Ku qor ama soo koobiyeey qoraalkaaga halkan..."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <button onClick={() => setText(text.toUpperCase())} className="px-4 py-2 bg-slate-100 hover:bg-primary-light rounded-lg text-sm font-medium transition-colors text-slate-800">WAWAAIN (UPPERCASE)</button>
-        <button onClick={() => setText(text.toLowerCase())} className="px-4 py-2 bg-slate-100 hover:bg-primary-light rounded-lg text-sm font-medium transition-colors text-slate-800">yaryar (lowercase)</button>
-        <button onClick={() => setText(text.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase()))))} className="px-4 py-2 bg-slate-100 hover:bg-primary-light rounded-lg text-sm font-medium transition-colors text-slate-800">Eray Kasta Weynee</button>
-        <button onClick={() => setText(text.charAt(0).toUpperCase() + text.slice(1).toLowerCase())} className="px-4 py-2 bg-slate-100 hover:bg-primary-light rounded-lg text-sm font-medium transition-colors text-slate-800">Bilaawga Weynee</button>
-      </div>
-      <div className="flex justify-end">
-        <button onClick={() => navigator.clipboard.writeText(text)} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg text-sm font-medium transition-colors shadow-md">
-          <Copy className="w-4 h-4" /> Koobiyeey
-        </button>
-      </div>
-    </div>
-  );
-};
+  const [loading, setLoading] = useState(false);
 
-const WordCounter = () => {
-  const [text, setText] = useState('');
-  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
-  const chars = text.length;
-  const charsNoSpaces = text.replace(/\s/g, '').length;
-  const paragraphs = text.trim() ? text.split(/\n+/).length : 0;
-
-  return (
-    <div className="space-y-4">
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
-        <div className="bg-primary-light p-4 rounded-xl text-center">
-          <div className="text-2xl font-bold text-primary-dark">{words}</div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Erayo</div>
-        </div>
-        <div className="bg-primary-light p-4 rounded-xl text-center">
-          <div className="text-2xl font-bold text-primary-dark">{chars}</div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Xarfo</div>
-        </div>
-        <div className="bg-primary-light p-4 rounded-xl text-center">
-          <div className="text-2xl font-bold text-primary-dark">{charsNoSpaces}</div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Xarfo bilaa Boos ah</div>
-        </div>
-        <div className="bg-primary-light p-4 rounded-xl text-center">
-          <div className="text-2xl font-bold text-primary-dark">{paragraphs}</div>
-          <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Baaragaraafyo</div>
-        </div>
-      </div>
-      <textarea 
-        className="w-full h-40 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none"
-        placeholder="Ku qor ama soo koobiyeey qoraalkaaga halkan..."
-        value={text}
-        onChange={(e) => setText(e.target.value)}
-      />
-    </div>
-  );
-};
-
-const RemoveExtraSpaces = () => {
-  const [text, setText] = useState('');
-  
-  const handleRemove = () => {
-    setText(text.replace(/\s+/g, ' ').trim());
+  const applyAction = async (action: () => void) => {
+    setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    action();
+    setLoading(false);
+    playCompleteSound();
   };
 
   return (
@@ -155,14 +190,136 @@ const RemoveExtraSpaces = () => {
         value={text}
         onChange={(e) => setText(e.target.value)}
       />
-      <div className="flex justify-between items-center">
-        <button onClick={handleRemove} className="flex items-center gap-2 px-4 py-2 bg-secondary hover:bg-secondary-light text-white rounded-lg text-sm font-medium transition-colors">
-          <Scissors className="w-4 h-4" /> Ka saar Boosaska Dheeraadka ah
-        </button>
-        <button onClick={() => navigator.clipboard.writeText(text)} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg text-sm font-medium transition-colors">
-          <Copy className="w-4 h-4" /> Koobiyeey
-        </button>
-      </div>
+      
+      {loading ? (
+        <ProcessingAnimation toolName="Text Converter" icon={Type} />
+      ) : (
+        <>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button onClick={() => applyAction(() => setText(text.toUpperCase()))} className="px-4 py-2 bg-slate-100 hover:bg-primary-light rounded-lg text-sm font-medium transition-colors text-slate-800">WAWAAIN (UPPERCASE)</button>
+            <button onClick={() => applyAction(() => setText(text.toLowerCase()))} className="px-4 py-2 bg-slate-100 hover:bg-primary-light rounded-lg text-sm font-medium transition-colors text-slate-800">yaryar (lowercase)</button>
+            <button onClick={() => applyAction(() => setText(text.replace(/\w\S*/g, (w) => (w.replace(/^\w/, (c) => c.toUpperCase())))))} className="px-4 py-2 bg-slate-100 hover:bg-primary-light rounded-lg text-sm font-medium transition-colors text-slate-800">Eray Kasta Weynee</button>
+            <button onClick={() => applyAction(() => setText(text.charAt(0).toUpperCase() + text.slice(1).toLowerCase()))} className="px-4 py-2 bg-slate-100 hover:bg-primary-light rounded-lg text-sm font-medium transition-colors text-slate-800">Bilaawga Weynee</button>
+          </div>
+          <div className="flex justify-end">
+            <button onClick={() => navigator.clipboard.writeText(text)} className="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg text-sm font-medium transition-colors shadow-md">
+              <Copy className="w-4 h-4" /> Koobiyeey
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+const WordCounter = () => {
+  const [text, setText] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [showResults, setShowResults] = useState(false);
+
+  const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+  const chars = text.length;
+  const charsNoSpaces = text.replace(/\s/g, '').length;
+  const paragraphs = text.trim() ? text.split(/\n+/).length : 0;
+
+  const handleAnalyze = async () => {
+    if (!text.trim()) return;
+    setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setLoading(false);
+    setShowResults(true);
+    playCompleteSound();
+  };
+
+  return (
+    <div className="space-y-4">
+      {loading ? (
+        <ProcessingAnimation toolName="Word Counter" icon={Hash} />
+      ) : (
+        <>
+          {showResults && (
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-4">
+              <div className="bg-primary-light p-4 rounded-xl text-center">
+                <div className="text-2xl font-bold text-primary-dark">{words}</div>
+                <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Erayo</div>
+              </div>
+              <div className="bg-primary-light p-4 rounded-xl text-center">
+                <div className="text-2xl font-bold text-primary-dark">{chars}</div>
+                <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Xarfo</div>
+              </div>
+              <div className="bg-primary-light p-4 rounded-xl text-center">
+                <div className="text-2xl font-bold text-primary-dark">{charsNoSpaces}</div>
+                <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Xarfo bilaa Boos ah</div>
+              </div>
+              <div className="bg-primary-light p-4 rounded-xl text-center">
+                <div className="text-2xl font-bold text-primary-dark">{paragraphs}</div>
+                <div className="text-xs text-slate-500 uppercase tracking-wider mt-1">Baaragaraafyo</div>
+              </div>
+            </div>
+          )}
+          <textarea 
+            className="w-full h-40 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none"
+            placeholder="Ku qor ama soo koobiyeey qoraalkaaga halkan..."
+            value={text}
+            onChange={(e) => {
+              setText(e.target.value);
+              if (showResults) setShowResults(false);
+            }}
+          />
+          <div className="flex justify-center">
+            <button 
+              onClick={handleAnalyze} 
+              className="flex items-center gap-2 px-8 py-2.5 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all shadow-lg active:scale-95"
+            >
+              <Hash className="w-4 h-4" /> Tiri Erayada
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
+
+const RemoveExtraSpaces = () => {
+  const [text, setText] = useState('');
+  const [loading, setLoading] = useState(false);
+  
+  const handleRemove = async () => {
+    if (!text.trim()) return;
+    setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setText(text.replace(/\s+/g, ' ').trim());
+    setLoading(false);
+    playCompleteSound();
+  };
+
+  return (
+    <div className="space-y-4">
+      <textarea 
+        className="w-full h-40 p-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-primary outline-none resize-none"
+        placeholder="Ku qor ama soo koobiyeey qoraalkaaga halkan..."
+        value={text}
+        onChange={(e) => setText(e.target.value)}
+      />
+      
+      {loading ? (
+        <ProcessingAnimation toolName="Space Cleaner" icon={AlignLeft} />
+      ) : (
+        <div className="flex justify-between items-center">
+          <button 
+            onClick={handleRemove} 
+            className="flex items-center gap-2 px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg font-medium transition-colors shadow-md"
+          >
+            <Scissors className="w-4 h-4" /> Ka saar Boosaska Dheeraadka ah
+          </button>
+          <button 
+            onClick={() => navigator.clipboard.writeText(text)} 
+            className="flex items-center gap-2 px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-lg text-sm font-medium transition-colors text-slate-800"
+          >
+            <Copy className="w-4 h-4" /> Koobiyeey
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -195,7 +352,7 @@ const ImageToText = () => {
       const mimeType = image.split(';')[0].split(':')[1];
       
       const response = await ai.models.generateContent({
-        model: 'gemini-2.0-flash',
+        model: 'gemini-3-flash-preview',
         contents: {
           parts: [
             { inlineData: { data: base64Data, mimeType } },
@@ -206,12 +363,11 @@ const ImageToText = () => {
       
       const extractedText = response.text || 'Qoraal lama helin.';
       
-      const success = await consumeCredit('image-to-text', extractedText.substring(0, 100));
-      if (!success) {
-        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
-        setLoading(false);
-        return;
-      }
+      await consumeCredit('image-to-text', extractedText.substring(0, 100));
+      
+      // Delay slightly for the animation to feel real
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      playCompleteSound();
       setText(extractedText);
     } catch (error) {
       console.error(error);
@@ -250,19 +406,18 @@ const ImageToText = () => {
               <X className="w-5 h-5" />
             </button>
           </div>
-          <div className="flex justify-center">
-            <button 
-              onClick={extractText} 
-              disabled={loading}
-              className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md hover:shadow-lg translate-y-0 active:translate-y-1"
-            >
-              {loading ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Soo saarayaa...</>
-              ) : (
-                <><FileText className="w-4 h-4" /> Soo saar Qoraalka</>
-              )}
-            </button>
-          </div>
+      <div className="flex justify-center">
+        {loading ? (
+          <ProcessingAnimation toolName="Image to Text" icon={ImageIcon} />
+        ) : (
+          <button 
+            onClick={extractText} 
+            className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md hover:shadow-lg translate-y-0 active:translate-y-1"
+          >
+            <FileText className="w-4 h-4" /> Soo saar Qoraalka
+          </button>
+        )}
+      </div>
         </div>
       )}
       
@@ -312,7 +467,7 @@ const JpgToWord = () => {
       const mimeType = image.split(';')[0].split(':')[1];
       
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3-flash-preview',
         contents: {
           parts: [
             { inlineData: { data: base64Data, mimeType } },
@@ -323,13 +478,12 @@ const JpgToWord = () => {
       
       const text = response.text || 'No text found.';
       
-      const success = await consumeCredit('jpg-to-word', 'Converted image to Word doc');
-      if (!success) {
-        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
-        setLoading(false);
-        return;
-      }
+      await consumeCredit('jpg-to-word', 'Converted image to Word doc');
       
+      // Delay for animation
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      playCompleteSound();
+
       // Create a simple blob that MS Word can open
       const blob = new Blob(['\ufeff', text], { type: 'application/msword' });
       const url = URL.createObjectURL(blob);
@@ -378,19 +532,18 @@ const JpgToWord = () => {
               <X className="w-5 h-5" />
             </button>
           </div>
-          <div className="flex justify-center">
-            <button 
-              onClick={convertToWord} 
-              disabled={loading}
-              className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md"
-            >
-              {loading ? (
-                <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Beddelayaa...</>
-              ) : (
-                <><Download className="w-4 h-4" /> Hadda Degso (Word)</>
-              )}
-            </button>
-          </div>
+      <div className="flex justify-center">
+        {loading ? (
+          <ProcessingAnimation toolName="JPG to Word" icon={FileImage} />
+        ) : (
+          <button 
+            onClick={convertToWord} 
+            className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md"
+          >
+            <Download className="w-4 h-4" /> Hadda Degso (Word)
+          </button>
+        )}
+      </div>
         </div>
       )}
     </div>
@@ -462,12 +615,11 @@ const TitleToImage = () => {
         }
       });
 
-      const success = await consumeCredit('blog-cover', `Generated blog cover: ${capitalizedTitle}`);
-      if (!success) {
-        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
-        setLoading(false);
-        return;
-      }
+      await consumeCredit('blog-cover', `Generated blog cover: ${capitalizedTitle}`);
+      
+      // Animation delay
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      playCompleteSound();
       
       for (const part of response.candidates?.[0]?.content?.parts || []) {
         if (part.inlineData) {
@@ -558,17 +710,17 @@ const TitleToImage = () => {
       </div>
       
       <div className="flex justify-center pt-2">
-        <button 
-          onClick={generateImage} 
-          disabled={loading || !title.trim()}
-          className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md"
-        >
-          {loading ? (
-            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Diyaarinta...</>
-          ) : (
-            <><Wand2 className="w-4 h-4" /> Diyaari Sawirka</>
-          )}
-        </button>
+        {loading ? (
+          <ProcessingAnimation toolName="Cover Generator" icon={Wand2} />
+        ) : (
+          <button 
+            onClick={generateImage} 
+            disabled={!title.trim()}
+            className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md"
+          >
+            <Wand2 className="w-4 h-4" /> Diyaari Sawirka
+          </button>
+        )}
       </div>
 
       {imageUrl && (
@@ -664,12 +816,11 @@ const BackgroundGenerator = () => {
         }
       });
 
-      const success = await consumeCredit('background-gen', `Generated ${bgStyle} background with ${colorTheme}`);
-      if (!success) {
-        alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
-        setLoading(false);
-        return;
-      }
+      await consumeCredit('background-gen', `Generated ${bgStyle} background with ${colorTheme}`);
+      
+      // Animation delay
+      await new Promise(resolve => setTimeout(resolve, 2500));
+      playCompleteSound();
       
       for (const part of response.candidates?.[0]?.content?.parts || []) {
         if (part.inlineData) {
@@ -742,17 +893,16 @@ const BackgroundGenerator = () => {
       </div>
       
       <div className="flex justify-center pt-2">
-        <button 
-          onClick={generateBackground} 
-          disabled={loading}
-          className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md translate-y-0 active:translate-y-1"
-        >
-          {loading ? (
-            <><div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Diyaarinta...</>
-          ) : (
-            <><Wand2 className="w-4 h-4" /> Diyaari Background-ka</>
-          )}
-        </button>
+        {loading ? (
+          <ProcessingAnimation toolName="Background Gen" icon={Palette} />
+        ) : (
+          <button 
+            onClick={generateBackground} 
+            className="px-6 py-2 bg-primary hover:bg-primary-dark disabled:bg-slate-400 text-white rounded-lg font-medium transition-colors flex items-center gap-2 shadow-md translate-y-0 active:translate-y-1"
+          >
+            <Wand2 className="w-4 h-4" /> Diyaari Background-ka
+          </button>
+        )}
       </div>
 
       {imageUrl && (
@@ -838,11 +988,9 @@ const PdfToExcelNames = () => {
           const responseText = result.text || '';
           const names = responseText.split('\n').map(n => n.trim()).filter(n => n.length > 0);
           
-          const success = await consumeCredit('pdf-to-names', `Extracted ${names.length} names from ${file.name}`);
-          if (!success) {
-            alert('Credits-kaaga waa ay dhammaadeen. Fadlan cusboonaysii (Upgrade) qorshahaaga.');
-            break;
-          }
+          await consumeCredit('pdf-to-names', `Extracted ${names.length} names from ${file.name}`);
+          
+          playCompleteSound();
 
           newData[id] = names;
           setExtractedData(JSON.parse(JSON.stringify(newData))); 
@@ -954,25 +1102,27 @@ const PdfToExcelNames = () => {
       )}
 
       <div className="flex flex-wrap justify-center gap-4">
-        <button 
-          onClick={processPdfs}
-          disabled={files.length === 0 || loading}
-          className="px-8 py-3 bg-primary hover:bg-primary-dark disabled:bg-slate-300 text-white rounded-xl font-medium transition-colors flex items-center gap-2 shadow-md"
-        >
-          {loading ? (
-            <><div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> Shaqaynaya...</>
-          ) : (
-            <><Wand2 className="w-5 h-5" /> Soo saar Magacyada</>
-          )}
-        </button>
-        
-        {Object.keys(extractedData).length > 0 && (
-          <button 
-            onClick={downloadExcel}
-            className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors shadow-md"
-          >
-            <Download className="w-5 h-5" /> Degso Faylka Excel-ka ah
-          </button>
+        {loading ? (
+          <ProcessingAnimation toolName="Name Extractor" icon={FileSpreadsheet} />
+        ) : (
+          <>
+            <button 
+              onClick={processPdfs}
+              disabled={files.length === 0}
+              className="px-8 py-3 bg-primary hover:bg-primary-dark disabled:bg-slate-300 text-white rounded-xl font-medium transition-colors flex items-center gap-2 shadow-md"
+            >
+              <Wand2 className="w-5 h-5" /> Soo saar Magacyada
+            </button>
+            
+            {Object.keys(extractedData).length > 0 && (
+              <button 
+                onClick={downloadExcel}
+                className="flex items-center gap-2 px-8 py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-colors shadow-md"
+              >
+                <Download className="w-5 h-5" /> Degso Faylka Excel-ka ah
+              </button>
+            )}
+          </>
         )}
       </div>
 
@@ -1021,18 +1171,64 @@ const PdfToExcelNames = () => {
 };
 
 const PdfToJpg = () => {
+  const [loading, setLoading] = useState(false);
+  const [showStatus, setShowStatus] = useState(false);
+
+  const handleConvert = async () => {
+    setLoading(true);
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    setLoading(false);
+    setShowStatus(true);
+    playCompleteSound();
+  };
+
   return (
-    <div className="space-y-4 text-center py-8">
-      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
-        <FileBox className="w-8 h-8 text-slate-400" />
-      </div>
-      <h3 className="font-heading font-semibold text-lg text-slate-800">U beddel PDF-ka sawir ahaan (JPG)</h3>
-      <p className="text-slate-500 max-w-sm mx-auto">
-        Qaabkan waxa uu u baahan yahay nidaam dhinaca backend-ka ah, dhawaan ayaana la soo kordhin doonaa inshaa Allah.
-      </p>
-      <button disabled className="mt-4 px-6 py-2 bg-slate-200 text-slate-500 rounded-lg font-medium cursor-not-allowed">
-        Dhawaan Filo
-      </button>
+    <div className="space-y-4 text-center py-4">
+      {loading ? (
+        <ProcessingAnimation toolName="PDF to JPG" icon={FileBox} />
+      ) : showStatus ? (
+        <div className="space-y-4 animate-in fade-in zoom-in duration-500">
+          <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-100">
+            <Clock className="w-8 h-8 text-amber-500" />
+          </div>
+          <h3 className="font-heading font-semibold text-lg text-slate-800">Dhawaan ayaan soo kordhinaynaa!</h3>
+          <p className="text-slate-500 max-w-sm mx-auto">
+            Habkan waxa uu u baahan yahay nidaam dhinaca backend-ka ah oo aad u xooggan, dhawaan ayaana la soo kordhin doonaa inshaa Allah.
+          </p>
+          <button 
+            onClick={() => setShowStatus(false)}
+            className="mt-4 px-6 py-2 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-lg font-medium transition-colors"
+          >
+            Ku laabo
+          </button>
+        </div>
+      ) : (
+        <div className="space-y-6">
+          <div className="w-20 h-20 bg-slate-100 rounded-3xl flex items-center justify-center mx-auto mb-2 border border-slate-200 shadow-inner">
+            <FileBox className="w-10 h-10 text-slate-400" />
+          </div>
+          <div className="space-y-2">
+            <h3 className="font-heading font-bold text-xl text-secondary">U beddel PDF sawirro (JPG)</h3>
+            <p className="text-slate-500 max-w-xs mx-auto text-sm">
+              Si fudud bogagga PDF-ka uga dhig sawirro tayo sare leh oo aad meel walba ku isticmaali karto.
+            </p>
+          </div>
+          <div 
+            className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center hover:bg-slate-50 transition-all cursor-pointer group"
+            onClick={handleConvert}
+          >
+            <Upload className="w-8 h-8 text-slate-400 mx-auto mb-3 group-hover:text-primary transition-colors" />
+            <p className="text-slate-600 font-bold">Guji si aad u soo geliso PDF</p>
+            <p className="text-slate-400 text-xs mt-1">U beddel JPG ahaan</p>
+          </div>
+          <button 
+            onClick={handleConvert}
+            className="px-8 py-3 bg-primary hover:bg-primary-dark text-white rounded-xl font-bold transition-all shadow-lg active:scale-95 flex items-center gap-2 mx-auto"
+          >
+            <Zap className="w-4 h-4" /> Hadda tijaabi
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -1046,7 +1242,7 @@ const tools = [
     component: TextCaseConverter,
     category: 'TEXT TOOLS',
     buttonText: 'Beddel',
-    bgImage: 'https://images.unsplash.com/photo-1455390582262-044cdead277a?auto=format&fit=crop&q=80&w=800'
+    color: 'orange'
   },
   { 
     id: 'word-counter', 
@@ -1056,7 +1252,7 @@ const tools = [
     component: WordCounter,
     category: 'ANALYSIS',
     buttonText: 'Tiri',
-    bgImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=800'
+    color: 'pink'
   },
   { 
     id: 'remove-spaces', 
@@ -1066,17 +1262,17 @@ const tools = [
     component: RemoveExtraSpaces,
     category: 'TEXT TOOLS',
     buttonText: 'Sifeey',
-    bgImage: 'https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&q=80&w=800'
+    color: 'amber'
   },
   { 
     id: 'image-to-text', 
     name: 'Sawir u beddel Qoraal', 
-    icon: ImageIcon, 
+    icon: FileText, 
     description: 'Ka soo saar qoraalka sawirada adigoo isticmaalaya AI.', 
     component: ImageToText,
     category: 'AI VISION',
     buttonText: 'Soo saar',
-    bgImage: 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?auto=format&fit=crop&q=80&w=800'
+    color: 'purple'
   },
   { 
     id: 'jpg-to-word', 
@@ -1086,17 +1282,17 @@ const tools = [
     component: JpgToWord,
     category: 'CONVERSION',
     buttonText: 'Beddel',
-    bgImage: 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&q=80&w=800'
+    color: 'orange'
   },
   { 
     id: 'title-to-image', 
     name: 'Sameeyaha Cover-ka', 
-    icon: Coins, 
+    icon: ImagePlus, 
     description: 'U sameey cover qurux badan blog-kaaga adigoo cinwaan siinaya.', 
     component: TitleToImage,
     category: 'DESIGN',
     buttonText: 'Sameey',
-    bgImage: 'https://images.unsplash.com/photo-1579621970563-ebec7560ff3e?auto=format&fit=crop&q=80&w=800'
+    color: 'pink'
   },
   { 
     id: 'background-generator', 
@@ -1106,7 +1302,7 @@ const tools = [
     component: BackgroundGenerator,
     category: 'DESIGN',
     buttonText: 'Sameey',
-    bgImage: 'https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80&w=800'
+    color: 'amber'
   },
   { 
     id: 'pdf-to-names', 
@@ -1116,17 +1312,17 @@ const tools = [
     component: PdfToExcelNames,
     category: 'AI DATA',
     buttonText: 'Soo saar',
-    bgImage: 'https://images.unsplash.com/photo-1517842645767-c639042777db?auto=format&fit=crop&q=80&w=800'
+    color: 'purple'
   },
   { 
     id: 'pdf-to-jpg', 
     name: 'PDF u beddel JPG', 
-    icon: Banknote, 
+    icon: FileBox, 
     description: 'U beddel bogagga PDF-ka sawiro JPG ah oo tayo sare leh.', 
     component: PdfToJpg,
     category: 'DOCUMENT',
     buttonText: 'Beddel',
-    bgImage: 'https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=800'
+    color: 'orange'
   }
 ];
 
@@ -1511,14 +1707,7 @@ const UserDashboard = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
           </div>
 
           {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="p-4 bg-white border border-slate-100 shadow-sm rounded-2xl flex flex-col items-center text-center">
-              <div className="w-10 h-10 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center mb-3">
-                <Coins className="w-6 h-6" />
-              </div>
-              <div className="text-2xl font-bold text-secondary">{userData?.credits || 0}</div>
-              <div className="text-[10px] font-bold text-slate-400 uppercase">Credits Haray</div>
-            </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="p-4 bg-white border border-slate-100 shadow-sm rounded-2xl flex flex-col items-center text-center">
               <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center mb-3">
                 <RefreshCw className="w-6 h-6" />
@@ -1528,61 +1717,20 @@ const UserDashboard = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
             </div>
             <div className="p-4 bg-white border border-slate-100 shadow-sm rounded-2xl flex flex-col items-center text-center">
               <div className="w-10 h-10 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center mb-3">
-                <Clock className="w-6 h-6" />
+                <Shield className="w-6 h-6" />
               </div>
-              <div className="text-xs font-bold text-secondary">Maalin Kasta</div>
-              <div className="text-[10px] font-bold text-slate-400 uppercase">Credits Reset</div>
+              <div className="text-xs font-bold text-secondary">Unlimited Access</div>
+              <div className="text-[10px] font-bold text-slate-400 uppercase">Bilaash Ah</div>
             </div>
           </div>
 
-          {/* Recent Generations */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h5 className="font-heading font-bold text-secondary flex items-center gap-2">
-                <History className="w-5 h-5 text-primary" /> Taariikhda Isticmaalka (History)
-              </h5>
-            </div>
-            <div className="space-y-3">
-              {generations.length > 0 ? generations.map((gen) => (
-                <div key={gen.id} className="flex items-center justify-between p-4 bg-slate-50 border border-slate-100 rounded-2xl hover:border-primary/30 transition-all">
-                  <div className="flex items-center gap-4 overflow-hidden">
-                    <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center text-primary shadow-sm shrink-0">
-                      {tools.find(t => t.id === gen.toolId)?.icon ? (
-                        React.createElement(tools.find(t => t.id === gen.toolId)!.icon, { className: "w-5 h-5" })
-                      ) : (
-                        <Zap className="w-5 h-5" />
-                      )}
-                    </div>
-                    <div className="overflow-hidden">
-                      <div className="font-bold text-secondary text-sm truncate">
-                        {tools.find(t => t.id === gen.toolId)?.name || gen.toolId}
-                      </div>
-                      <div className="text-[10px] text-slate-500 truncate italic">
-                        {gen.result || 'No description available'}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="text-[10px] font-medium text-slate-400 whitespace-nowrap pl-4">
-                    {gen.timestamp?.toDate ? new Date(gen.timestamp.toDate()).toLocaleDateString() : 'Dhawaan'}
-                  </div>
-                </div>
-              )) : (
-                <div className="py-12 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                  <History className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-                  <p className="text-slate-500 text-sm">Wali wax taariikh ah ma jiraan.</p>
-                </div>
-              )}
-            </div>
-          </div>
+          {/* Recent Generations Removed */}
         </div>
 
         <div className="p-6 bg-slate-50 border-t border-slate-100 text-center">
-           <button 
-             onClick={() => window.location.hash = '#pricing'}
-             className="text-primary font-bold text-sm hover:underline"
-           >
-             Miyaad u baahan tahay Credits dheeraad ah? Upgrade hadda.
-           </button>
+           <p className="text-slate-500 font-bold text-sm">
+             Ku raaxayso agabka AI-ga oo bilaash ah!
+           </p>
         </div>
       </motion.div>
     </div>
@@ -1642,13 +1790,24 @@ export default function App() {
             <div className="hidden md:flex items-center space-x-6">
               <a href="#home" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Home</a>
               <a href="#tools" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Tools</a>
-              <a href="#pricing" className="text-sm font-medium text-slate-600 hover:text-primary transition-colors">Pricing</a>
               
-              {!user && <CreditWallet />}
+              {!user && (
+                <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+                  <Shield className="w-3.5 h-3.5 text-green-600" />
+                  <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">
+                    Free Access
+                  </span>
+                </div>
+              )}
 
               {user ? (
                 <div className="flex items-center gap-4">
-                  <CreditWallet />
+                  <div className="flex items-center gap-2 px-3 py-1.5 bg-green-50 border border-green-200 rounded-full">
+                    <CheckCircle2 className="w-3.5 h-3.5 text-green-600" />
+                    <span className="text-[10px] font-bold text-green-600 uppercase tracking-wider">
+                      PRO FREE
+                    </span>
+                  </div>
                   <div className="flex items-center gap-2 pl-4 border-l border-slate-200">
                     <button 
                       onClick={() => setIsDashboardOpen(true)}
@@ -1705,11 +1864,9 @@ export default function App() {
               <div className="px-4 pt-2 pb-4 space-y-1">
                 <a href="#home" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Home</a>
                 <a href="#tools" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Tools</a>
-                <a href="#pricing" onClick={() => setMobileMenuOpen(false)} className="block px-3 py-2 rounded-md text-base font-medium text-slate-700 hover:text-primary hover:bg-slate-50">Pricing</a>
-                {!user && <div className="px-3 py-2"><CreditWallet /></div>}
                 {user ? (
-                  <div className="px-3 py-2 flex items-center justify-between">
-                    <CreditWallet />
+                  <div className="px-3 py-2 flex items-center justify-between border-t border-slate-100">
+                    <span className="text-green-600 font-bold text-xs uppercase">Unlimited Free</span>
                     <button onClick={handleLogout} className="text-rose-500 font-medium text-sm">Logout</button>
                   </div>
                 ) : (
@@ -1757,48 +1914,96 @@ export default function App() {
               <p className="text-slate-600 max-w-2xl mx-auto">Guji qalab kasta oo hoos ku yaal si aad isla markiiba u isticmaasho. Wax is-diiwaangalin ah looma baahna.</p>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-              {tools.map((tool, index) => (
-                <motion.div
-                  key={tool.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                  onClick={() => setActiveTool(tool)}
-                  className="group relative aspect-[4/3] rounded-[2rem] overflow-hidden border border-slate-200 shadow-lg hover:shadow-xl transition-all cursor-pointer"
-                >
-                  {/* Background Image */}
-                  <img 
-                    src={tool.bgImage} 
-                    alt={tool.name}
-                    className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                    referrerPolicy="no-referrer"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-secondary/90 via-secondary/20 to-transparent" />
-                  
-                  {/* Tag */}
-                  <div className="absolute top-5 left-5 bg-primary text-white text-[10px] font-bold px-4 py-1.5 rounded-full uppercase tracking-widest shadow-sm">
-                    {tool.category}
-                  </div>
-                  
-                  {/* Button */}
-                  <div className="absolute top-5 right-5 bg-secondary/80 backdrop-blur-md text-primary text-[10px] font-bold px-4 py-1.5 rounded-full flex items-center gap-1.5 border border-white/10 shadow-sm transition-all group-hover:bg-primary group-hover:text-white">
-                    <ExternalLink className="w-3.5 h-3.5" /> {tool.buttonText}
-                  </div>
-                  
-                  {/* Content */}
-                  <div className="absolute bottom-6 left-6 right-6">
-                    <div className="flex items-center gap-3 mb-2">
-                      <div className="w-8 h-8 bg-white/20 backdrop-blur-md rounded-lg flex items-center justify-center text-white group-hover:bg-primary/40 transition-colors">
-                        <tool.icon className="w-4 h-4" />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-x-6 gap-y-16 mt-20">
+              {tools.map((tool, index) => {
+                const colorMap = {
+                  orange: {
+                    gradient: 'from-[#ff8c42] to-[#ff3c38]',
+                    shadow: 'shadow-orange-500/20',
+                    border: 'border-orange-500/20',
+                    text: 'text-[#ff6b35]',
+                    bg: 'bg-orange-50',
+                    glow: 'shadow-[0_0_20px_rgba(255,107,53,0.3)]'
+                  },
+                  pink: {
+                    gradient: 'from-[#ff006e] to-[#fb5607]',
+                    shadow: 'shadow-pink-500/20',
+                    border: 'border-pink-500/20',
+                    text: 'text-[#ff006e]',
+                    bg: 'bg-pink-50',
+                    glow: 'shadow-[0_0_20px_rgba(255,0,110,0.3)]'
+                  },
+                  amber: {
+                    gradient: 'from-[#ffbe0b] to-[#fb5607]',
+                    shadow: 'shadow-amber-500/20',
+                    border: 'border-amber-500/20',
+                    text: 'text-[#fb8500]',
+                    bg: 'bg-amber-50',
+                    glow: 'shadow-[0_0_20px_rgba(251,133,0,0.3)]'
+                  },
+                  purple: {
+                    gradient: 'from-[#8338ec] to-[#3a86ff]',
+                    shadow: 'shadow-purple-500/20',
+                    border: 'border-purple-500/20',
+                    text: 'text-[#8338ec]',
+                    bg: 'bg-indigo-50',
+                    glow: 'shadow-[0_0_20px_rgba(131,56,236,0.3)]'
+                  }
+                };
+                
+                const theme = colorMap[tool.color as keyof typeof colorMap] || colorMap.orange;
+                const stepNum = (index + 1).toString().padStart(2, '0');
+
+                return (
+                  <motion.div
+                    key={tool.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                    onClick={() => setActiveTool(tool)}
+                    className="group relative cursor-pointer pt-10"
+                  >
+                    {/* The Shield/Card */}
+                    <div className="relative bg-white rounded-[2.5rem] p-8 pt-16 shadow-2xl border-b-[8px] border-slate-100 group-hover:border-primary/30 transition-all duration-300 min-h-[340px] flex flex-col items-center">
+                      
+                      {/* Floating Icon Header - Centered and Larger like a true infographic icon */}
+                      <div className={`absolute -top-12 left-1/2 -translate-x-1/2 w-24 h-24 rounded-3xl bg-gradient-to-br ${theme.gradient} flex items-center justify-center p-0.5 ${theme.glow} group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-300 z-10 shadow-2xl`}>
+                        <div className="w-full h-full rounded-[1.4rem] bg-white/20 backdrop-blur-md flex items-center justify-center">
+                          <tool.icon className="w-12 h-12 text-white drop-shadow-lg" />
+                        </div>
                       </div>
-                      <h3 className="text-white font-bold text-xl leading-tight">{tool.name}</h3>
+
+                      {/* Step Number - Moved to top right background */}
+                      <div className="absolute top-4 right-6 opacity-10 select-none">
+                        <div className={`text-6xl font-black ${theme.text} leading-none tracking-tighter italic`}>
+                          {stepNum}
+                        </div>
+                      </div>
+
+                      {/* Content */}
+                      <div className="text-center space-y-4 flex-1 flex flex-col justify-center mt-4">
+                        <h3 className="text-slate-800 font-black text-xl leading-tight uppercase tracking-wider">
+                          {tool.name}
+                        </h3>
+                        <p className="text-slate-500 text-sm leading-relaxed font-medium">
+                          {tool.description}
+                        </p>
+                      </div>
+
+                      {/* Action Button */}
+                      <div className="mt-8">
+                        <div className={`px-8 py-3 rounded-2xl border-2 ${theme.border} ${theme.text} text-xs font-black uppercase tracking-[0.2em] group-hover:bg-primary group-hover:border-primary group-hover:text-white transition-all shadow-sm flex items-center gap-2`}>
+                          Bilaw <ArrowRight className="w-4 h-4" />
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-white/70 text-sm line-clamp-2">{tool.description}</p>
-                  </div>
-                </motion.div>
-              ))}
+
+                    {/* Background Decorative Shape like in the image */}
+                    <div className={`absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-r ${theme.gradient} rounded-b-[2rem] opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         </section>
@@ -1837,98 +2042,7 @@ export default function App() {
           </div>
         </section>
 
-        {/* Pricing Section */}
-        <section id="pricing" className="py-20 bg-slate-50 border-y border-slate-200">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center mb-16">
-              <h2 className="font-heading text-3xl font-bold text-secondary mb-4">Qorshayaasha Qiimaha</h2>
-              <p className="text-slate-600 max-w-2xl mx-auto">U dooro qorshaha ku habboon baahidaada shaqo.</p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Free Plan */}
-              <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-slate-50 rounded-bl-[5rem] -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-                <h3 className="font-heading text-xl font-bold text-secondary mb-2">FREE</h3>
-                <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-4xl font-extrabold text-secondary">$0</span>
-                  <span className="text-slate-500 text-sm">/month</span>
-                </div>
-                <ul className="space-y-4 mb-8">
-                  <li className="flex items-center gap-2 text-slate-600 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" /> 5 Credits Maalintii
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-600 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-green-500" /> Dhammaan Agabka (Basic)
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-400 text-sm italic">
-                    <X className="w-4 h-4" /> Usage Limited
-                  </li>
-                </ul>
-                <button 
-                  onClick={!user ? () => openAuth('login') : undefined}
-                  className="w-full py-3 px-4 bg-slate-100 text-secondary font-bold rounded-xl hover:bg-slate-200 transition-colors"
-                >
-                  {!user ? 'Soo gal si aad u isticmaasho' : (userData?.tier === 'free' ? 'Qorshahaagu waa kan' : 'Back to Free')}
-                </button>
-              </div>
-
-              {/* Pro Plan */}
-              <div className="bg-white p-8 rounded-[2.5rem] border-2 border-primary shadow-xl relative overflow-hidden group transform md:-translate-y-4">
-                <div className="absolute top-0 right-0 bg-primary text-white text-[10px] font-bold px-6 py-1.5 rotate-45 translate-x-8 translate-y-4 uppercase tracking-widest">Popular</div>
-                <h3 className="font-heading text-xl font-bold text-primary mb-2">PRO</h3>
-                <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-4xl font-extrabold text-secondary">$15</span>
-                  <span className="text-slate-500 text-sm">/month</span>
-                </div>
-                <ul className="space-y-4 mb-8">
-                  <li className="flex items-center gap-2 text-slate-600 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-primary" /> 50 Credits Maalintii
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-600 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-primary" /> High Priority Processing
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-600 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-primary" /> Mark-ga Hub-ka oo laga saaray
-                  </li>
-                </ul>
-                <button 
-                  onClick={!user ? () => openAuth('signup') : undefined}
-                  className="w-full py-3 px-4 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors shadow-lg"
-                >
-                  {!user ? 'Login & Upgrade' : (userData?.tier === 'pro' ? 'Hadda waad isticmaalaysaa' : 'Hadda Isku Day')}
-                </button>
-              </div>
-
-              {/* Max Plan */}
-              <div className="bg-white p-8 rounded-[2.5rem] border border-slate-200 shadow-sm hover:shadow-md transition-all relative overflow-hidden group">
-                <div className="absolute top-0 right-0 w-24 h-24 bg-primary-light/30 rounded-bl-[5rem] -mr-8 -mt-8 transition-transform group-hover:scale-110"></div>
-                <h3 className="font-heading text-xl font-bold text-secondary mb-2">MAX</h3>
-                <div className="flex items-baseline gap-1 mb-6">
-                  <span className="text-4xl font-extrabold text-secondary">$49</span>
-                  <span className="text-slate-500 text-sm">/month</span>
-                </div>
-                <ul className="space-y-4 mb-8">
-                  <li className="flex items-center gap-2 text-slate-600 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-secondary" /> Unlimited Credits
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-600 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-secondary" /> Dedicated Support
-                  </li>
-                  <li className="flex items-center gap-2 text-slate-600 text-sm">
-                    <CheckCircle2 className="w-4 h-4 text-secondary" /> Agab Cusub (Beta)
-                  </li>
-                </ul>
-                <button 
-                  onClick={!user ? () => openAuth('signup') : undefined}
-                  className="w-full py-3 px-4 bg-secondary text-white font-bold rounded-xl hover:bg-slate-800 transition-colors"
-                >
-                  {!user ? 'Login & Be Max' : (userData?.tier === 'max' || isAdmin ? 'Hadda waad isticmaalaysaa' : 'Noqo Max')}
-                </button>
-              </div>
-            </div>
-          </div>
-        </section>
+        {/* Pricing Section Removed */}
 
         {/* Testimonials */}
         <section className="py-20 bg-secondary text-white relative overflow-hidden">
@@ -2057,35 +2171,7 @@ export default function App() {
               </div>
               
               <div className="p-4 sm:p-6 overflow-y-auto">
-                {(user || trialCount < 2) ? (
-                  <activeTool.component />
-                ) : (
-                  <div className="py-12 flex flex-col items-center text-center space-y-8">
-                    <div className="w-20 h-20 bg-primary-light/20 text-primary rounded-3xl flex items-center justify-center">
-                      <Lock className="w-10 h-10" />
-                    </div>
-                    <div className="max-w-md">
-                      <h3 className="font-heading text-2xl font-bold text-secondary mb-3">Login Baa Loo Baahan Yahay</h3>
-                      <p className="text-slate-600 leading-relaxed">
-                        Hambalyo! Waxaad isticmaashay 2-dii isku day ee bilaashka ahaa. Si aad u sii waddo isticmaalka agabkan AI-ga ah iyo credits-kaaga maalinlaha ah, fadlan soo gal.
-                      </p>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
-                      <button 
-                         onClick={() => openAuth('login')}
-                         className="flex-1 max-w-[200px] flex items-center justify-center gap-2 px-8 py-4 bg-primary hover:bg-primary-dark text-white rounded-2xl font-bold transition-all shadow-lg hover:shadow-primary/30"
-                      >
-                        <LogIn className="w-5 h-5" /> Soo Gal
-                      </button>
-                      <button 
-                        onClick={() => openAuth('signup')}
-                        className="flex-1 max-w-[200px] flex items-center justify-center gap-2 px-8 py-4 bg-white border-2 border-slate-200 hover:border-primary text-secondary rounded-2xl font-bold transition-all"
-                      >
-                        <UserIcon className="w-5 h-5" /> Is Diiwaangeli
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <activeTool.component />
               </div>
             </motion.div>
           </div>

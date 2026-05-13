@@ -188,55 +188,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   const consumeCredit = async (toolId: string, result?: string) => {
-    if (isAdmin) {
-      // Still log the generation for admins if they are logged in
-      if (user) {
-        await addDoc(collection(db, 'generations'), {
-          userId: user.uid,
-          toolId,
-          result: result || '',
-          createdAt: serverTimestamp()
-        });
-      }
-      return true;
+    // Log the generation regardless
+    if (user) {
+      await addDoc(collection(db, 'generations'), {
+        userId: user.uid,
+        toolId,
+        result: result || '',
+        createdAt: serverTimestamp()
+      });
     }
-
-    if (!user) {
-      if (trialCount < 2) {
-        setTrialCount(prev => prev + 1);
-        return true;
-      }
-      return false;
-    }
-
-    // Enforcement: Must be verified to consume credits (optional, but requested)
-    if (!user.emailVerified && user.providerData[0].providerId === 'password') {
-      // We allow verified state if it was a social login or email verified
-    }
-
-    try {
-      const userDocRef = doc(db, 'users', user.uid);
-      
-      if (userData && userData.credits > 0) {
-        await updateDoc(userDocRef, {
-          credits: increment(-1),
-          totalUsage: increment(1)
-        });
-
-        // Log the generation
-        await addDoc(collection(db, 'generations'), {
-          userId: user.uid,
-          toolId,
-          result: result || '',
-          createdAt: serverTimestamp()
-        });
-
-        return true;
-      }
-    } catch (error) {
-      handleFirestoreError(error, OperationType.UPDATE, `users/${user.uid}`);
-    }
-    return false;
+    return true;
   };
 
   return (
