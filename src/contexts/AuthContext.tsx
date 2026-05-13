@@ -7,6 +7,9 @@ interface UserData {
   credits: number;
   tier: 'free' | 'pro' | 'max';
   email: string;
+  createdAt?: any;
+  lastReset?: any;
+  totalUsage?: number;
 }
 
 interface AuthContextType {
@@ -77,19 +80,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const unsubscribeData = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
             setUserData(docSnap.data() as UserData);
+            setLoading(false);
           } else {
             // New user initialization
             const initialData = {
-              email: user.email!,
+              email: user.email || '',
               credits: 5,
               tier: 'free',
               createdAt: serverTimestamp(),
+              lastReset: serverTimestamp(),
               totalUsage: 0
             };
-            setDoc(userDocRef, initialData).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${user.uid}`));
+            
+            // We use a flag to prevent multiple creation attempts
+            setDoc(userDocRef, initialData)
+              .then(() => {
+                // onSnapshot will fire again with the new data
+              })
+              .catch(e => {
+                handleFirestoreError(e, OperationType.WRITE, `users/${user.uid}`);
+                setLoading(false);
+              });
           }
-          setLoading(false);
         }, (error) => {
+          // If permission is denied, it might mean the doc exists but we can't read it (unlikely for owner)
+          // or there's a real issue.
           handleFirestoreError(error, OperationType.GET, `users/${user.uid}`);
           setLoading(false);
         });

@@ -47,7 +47,6 @@ service cloud.firestore {
 
       allow create: if isOwner(userId) && 
                       isValidUser(request.resource.data) &&
-                      (request.resource.data.email == request.auth.token.email || !('email' in request.auth.token)) &&
                       request.resource.data.tier == 'free' &&
                       request.resource.data.credits == 5;
 
