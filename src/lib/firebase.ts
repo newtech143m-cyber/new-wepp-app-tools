@@ -7,7 +7,7 @@ const app = initializeApp(firebaseConfig);
 export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 export const auth = getAuth(app);
 export const googleProvider = new GoogleAuthProvider();
-googleProvider.addScope('email');
+// No need for extra scopes for basic email/profile
 googleProvider.setCustomParameters({ prompt: 'select_account' });
 
 // Connection test

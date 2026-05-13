@@ -98,6 +98,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 // onSnapshot will fire again with the new data
               })
               .catch(e => {
+                const message = 'Ma awoodno inaan kuu abuurno account (setup error). Fadlan hubi xiriirka internet-ka ama la xiriir maamulka.';
+                alert(message);
                 handleFirestoreError(e, OperationType.WRITE, `users/${user.uid}`);
                 setLoading(false);
               });
